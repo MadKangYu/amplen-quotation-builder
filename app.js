@@ -17,6 +17,150 @@
   let activeTab = "all";
   let imageCache = {}; // { productId: base64DataUrl }
 
+  let currentLang = 'ru';
+
+  const LANG = {
+    ru: {
+      fullQuote: '📄 Полная котировка (38 товаров)',
+      addAll1: '＋ Все по 1 шт.', addAll3: '＋ Все по 3 шт.',
+      reset: '↺ Сброс',
+      products: 'Товары', qty: 'Кол-во', total: 'Итого',
+      cartFilter: '🛒 Выбранные', preview: '📋 Просмотр',
+      downloadPdf: '📄 Скачать PDF', pdfBtn: '📄 PDF',
+      back: '← Назад',
+      emptyMain: 'Выберите товары и укажите количество',
+      emptyHint: '제품을 선택하고 수량을 입력하세요',
+      quoteTitle: '📋 Коммерческое предложение',
+      allCats: 'Все категории', allTab: 'Все',
+      confirmReset: 'Сбросить все количества?\n모든 수량을 초기화합니다?',
+      addQuickTitle: 'Добавить 1 шт.',
+      noProducts: 'Нет выбранных товаров\n선택된 제품이 없습니다',
+      loading: 'Загрузка...', loadingPrep: 'Подготовка котировки...',
+      loadingFonts: 'Загрузка шрифтов...', loadingPdf: 'Создание PDF...',
+      sec1: '+1шт', sec3: '+3шт', secCount: 'товаров',
+      qtNameCol: 'Наименование', qtVolCol: 'Объём',
+      qtPriceCol: 'Цена', qtQtyCol: 'Кол-во', qtSumCol: 'Сумма',
+      qtTotal: 'ИТОГО / TOTAL',
+      qtSumProducts: 'Товаров', qtSumQty: 'Кол-во', qtSumTotal: 'Итого',
+    },
+    kr: {
+      fullQuote: '📄 전체 견적서 (38개 제품)',
+      addAll1: '＋ 전체 1개씩', addAll3: '＋ 전체 3개씩',
+      reset: '↺ 초기화',
+      products: '제품', qty: '수량', total: '합계',
+      cartFilter: '🛒 선택됨', preview: '📋 미리보기',
+      downloadPdf: '📄 PDF 다운로드', pdfBtn: '📄 PDF',
+      back: '← 뒤로',
+      emptyMain: '제품을 선택하고 수량을 입력하세요',
+      emptyHint: 'Выберите товары и укажите количество',
+      quoteTitle: '📋 견적서',
+      allCats: '전체 카테고리', allTab: '전체',
+      confirmReset: '모든 수량을 초기화합니다?\nСбросить все количества?',
+      addQuickTitle: '1개 추가',
+      noProducts: '선택된 제품이 없습니다\nНет выбранных товаров',
+      loading: '로딩 중...', loadingPrep: '견적서 준비 중...',
+      loadingFonts: '폰트 로딩 중...', loadingPdf: 'PDF 생성 중...',
+      sec1: '+1개', sec3: '+3개', secCount: '제품',
+      qtNameCol: '제품명', qtVolCol: '용량',
+      qtPriceCol: '가격', qtQtyCol: '수량', qtSumCol: '금액',
+      qtTotal: '합계 / TOTAL',
+      qtSumProducts: '제품', qtSumQty: '수량', qtSumTotal: '합계',
+    }
+  };
+
+  function L(key) { return LANG[currentLang][key] || LANG.ru[key] || key; }
+
+  function toggleLang() {
+    currentLang = currentLang === 'ru' ? 'kr' : 'ru';
+    document.body.dataset.lang = currentLang;
+    document.getElementById('btnLang').textContent = '🌐 ' + currentLang.toUpperCase();
+    applyLangUI();
+  }
+
+  function applyLangUI() {
+    // Header quick action buttons
+    const q = (id, key) => { const el = document.getElementById(id); if (el) el.textContent = L(key); };
+    q('btnFullQuote', 'fullQuote');
+    q('btnAddAll1', 'addAll1');
+    q('btnAddAll3', 'addAll3');
+    q('btnResetTop', 'reset');
+
+    // Bottom bar stat labels
+    const statLabels = document.querySelectorAll('.stat-label');
+    if (statLabels[0]) statLabels[0].textContent = L('products');
+    if (statLabels[1]) statLabels[1].textContent = L('qty');
+    if (statLabels[2]) statLabels[2].textContent = L('total');
+
+    // Bottom bar action buttons
+    const cartBtn = document.getElementById('btnCartFilter');
+    if (cartBtn) {
+      const countSpan = cartBtn.querySelector('.cart-filter-count');
+      const countText = countSpan ? countSpan.outerHTML : '';
+      cartBtn.innerHTML = L('cartFilter') + ' ' + countText;
+    }
+    q('btnQuote', 'preview');
+    q('btnPdf', 'pdfBtn');
+
+    // Empty state
+    const emptyEl = document.getElementById('emptyState');
+    if (emptyEl) {
+      const ps = emptyEl.querySelectorAll('p');
+      if (ps[0]) ps[0].textContent = L('emptyMain');
+      if (ps[1]) ps[1].textContent = L('emptyHint');
+    }
+
+    // Quote modal
+    const qtTitle = document.querySelector('.quote-modal-title');
+    if (qtTitle) qtTitle.textContent = L('quoteTitle');
+    q('quoteBack', 'back');
+    q('quotePdf', 'downloadPdf');
+
+    // Mobile menu toggle label
+    const mmtLabel = document.getElementById('mmtLabel');
+    if (mmtLabel) {
+      if (activeTab === 'all') {
+        mmtLabel.textContent = L('allCats');
+      } else {
+        const sec = DATA.sections.find(s => s.id === activeTab);
+        if (sec) mmtLabel.textContent = sec.num + ' ' + getSectionLabel(sec);
+      }
+    }
+
+    // "Все" tab label
+    const allTabBtn = document.querySelector('[data-tab="all"]');
+    if (allTabBtn) {
+      const countSpan = allTabBtn.querySelector('.tab-count');
+      const icon = '<span class="tab-icon">☰</span> ';
+      allTabBtn.innerHTML = icon + L('allTab') + (countSpan ? countSpan.outerHTML : '');
+    }
+
+    // Section +1/+3 buttons & section title labels
+    document.querySelectorAll('.btn-sec-add').forEach(btn => {
+      const q = parseInt(btn.dataset.qty);
+      btn.textContent = q === 1 ? L('sec1') : L('sec3');
+    });
+
+    // Section titleRu line — show Russian or Korean
+    document.querySelectorAll('.section-group').forEach(g => {
+      const secId = g.dataset.section;
+      const sec = DATA.sections.find(s => s.id === secId);
+      if (!sec) return;
+      const titleRuEl = g.querySelector('.section-title-ru');
+      if (titleRuEl) {
+        const prods = DATA.products.filter(p => p.sectionId === sec.id);
+        const label = currentLang === 'kr'
+          ? (sec.titleKr || sec.titleRu || '') + ' · ' + prods.length + ' ' + L('secCount')
+          : (sec.titleRu || '') + ' · ' + prods.length + ' ' + L('secCount');
+        titleRuEl.textContent = label;
+      }
+    });
+  }
+
+  function getSectionLabel(sec) {
+    if (currentLang === 'kr' && sec.titleKr) return sec.titleKr;
+    return sec.title;
+  }
+
   // === INIT ===
   async function init() {
     document.getElementById("dateLabel").textContent = fmtDate(new Date());
@@ -35,6 +179,7 @@
     renderGrid();
     updateAll();
     bindEvents();
+    applyLangUI(); // apply language-specific UI text
     syncTabsTop();
     setTimeout(syncTabsTop, 100); // ensure after layout paint
   }
@@ -116,11 +261,11 @@
     // Mobile toggle header
     let html = `<div class="mobile-menu-toggle" id="mobileMenuToggle">
       <span class="mmt-icon">☰</span>
-      <span class="mmt-label" id="mmtLabel">Все категории</span>
+      <span class="mmt-label" id="mmtLabel">${L('allCats')}</span>
       <span class="mmt-arrow">▾</span>
     </div>`;
     html += `<div class="tab-list" id="tabList">`;
-    html += `<button class="tab-btn active" data-tab="all"><span class="tab-icon">☰</span> Все<span class="tab-count" id="tc-all"></span></button>`;
+    html += `<button class="tab-btn active" data-tab="all"><span class="tab-icon">☰</span> ${L('allTab')}<span class="tab-count" id="tc-all"></span></button>`;
     DATA.sections.forEach(s => {
       html += `<button class="tab-btn" data-tab="${s.id}"><span class="tab-num">${s.num}</span>${s.title}<span class="tab-count" id="tc-${s.id}"></span></button>`;
     });
@@ -162,11 +307,11 @@
             <div class="section-title-wrap">
               <span class="section-num">${sec.num}</span>
               <span class="section-title">${sec.title}</span>
-              <span class="section-title-ru">${sec.titleRu || ""} · ${prods.length} товаров</span>
+              <span class="section-title-ru">${currentLang === 'kr' ? (sec.titleKr || sec.titleRu || '') : (sec.titleRu || '')} · ${prods.length} ${L('secCount')}</span>
             </div>
             <div class="section-actions">
-              <button class="btn-sec btn-sec-add" data-sec="${sec.id}" data-qty="1">+1шт</button>
-              <button class="btn-sec btn-sec-add" data-sec="${sec.id}" data-qty="3">+3шт</button>
+              <button class="btn-sec btn-sec-add" data-sec="${sec.id}" data-qty="1">${L('sec1')}</button>
+              <button class="btn-sec btn-sec-add" data-sec="${sec.id}" data-qty="3">${L('sec3')}</button>
             </div>
           </div>
           <div class="product-grid">
@@ -190,7 +335,7 @@
         <div class="card-img-wrap">
           <img src="${p.image}" alt="${p.nameRu}" class="card-img" loading="lazy" onerror="this.src='${fallback}'">
           <div class="card-vol">${p.volume}</div>
-          <button class="card-quick-add" data-pid="${p.id}" title="Добавить 1 шт.">+</button>
+          <button class="card-quick-add" data-pid="${p.id}" title="${L('addQuickTitle')}">+</button>
         </div>
         <div class="card-body">
           <div class="card-name-ru">${p.nameRu}</div>
@@ -289,10 +434,10 @@
       nav.classList.remove('open');
       const label = document.getElementById('mmtLabel');
       if (label) {
-        if (activeTab === 'all') { label.textContent = '\u0412\u0441\u0435 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438'; }
+        if (activeTab === 'all') { label.textContent = L('allCats'); }
         else {
           const sec = DATA.sections.find(s => s.id === activeTab);
-          label.textContent = sec ? sec.num + ' ' + sec.title : activeTab;
+          label.textContent = sec ? sec.num + ' ' + getSectionLabel(sec) : activeTab;
         }
       }
     });
@@ -357,7 +502,7 @@
     document.getElementById("btnAddAll3").addEventListener("click", () => addToAll(3));
     document.getElementById("btnResetTop").addEventListener("click", () => {
       if (Object.keys(cart).length === 0) return;
-      if (confirm("Сбросить все количества?\n모든 수량을 초기화합니다?")) resetAll();
+      if (confirm(L('confirmReset'))) resetAll();
     });
 
     // Full quotation button
@@ -366,7 +511,7 @@
     // Bottom bar
     document.getElementById("btnReset").addEventListener("click", () => {
       if (Object.keys(cart).length === 0) return;
-      if (confirm("Сбросить все количества?\n모든 수량을 초기화합니다?")) resetAll();
+      if (confirm(L('confirmReset'))) resetAll();
     });
     document.getElementById("btnPdf").addEventListener("click", () => generatePdf(false));
 
@@ -380,10 +525,13 @@
     });
   }
 
+    // Language toggle
+    document.getElementById('btnLang').addEventListener('click', toggleLang);
+
   // === QUOTATION PREVIEW ===
   function openQuotePreview() {
     const selected = getSelected();
-    if (!selected.length) { alert("Нет выбранных товаров\n선택된 제품이 없습니다"); return; }
+    if (!selected.length) { alert(L('noProducts')); return; }
 
     const grouped = {};
     DATA.sections.forEach(s => { grouped[s.id] = { sec: s, items: [] }; });
@@ -395,7 +543,8 @@
     Object.values(grouped).forEach(({ sec, items }) => {
       if (!items.length) return;
       const secSum = items.reduce((s, i) => s + i.pricing.usd * i.qty, 0);
-      rows += `<tr class="qt-sec"><td colspan="5">${sec.num}. ${sec.title} — ${sec.titleRu || ""}</td><td style="text-align:right">$${secSum.toFixed(2)}</td></tr>`;
+      const secLabel = currentLang === 'kr' ? (sec.titleKr || sec.titleRu || '') : (sec.titleRu || '');
+      rows += `<tr class="qt-sec"><td colspan="5">${sec.num}. ${sec.title} \u2014 ${secLabel}</td><td style="text-align:right">$${secSum.toFixed(2)}</td></tr>`;
       items.forEach(it => {
         idx++;
         const sub = it.pricing.usd * it.qty;
@@ -403,7 +552,7 @@
         totalUsd += sub;
         rows += `<tr>
           <td><img src="${it.image}" class="qt-img" loading="lazy" onerror="this.style.display='none'"></td>
-          <td><div class="qt-name-ru">${it.nameRu}</div><div class="qt-name-sub">${it.nameEn}</div><div class="qt-name-sub">${it.nameKr}</div></td>
+          <td><div class="qt-name-ru">${currentLang === 'kr' ? it.nameKr : it.nameRu}</div><div class="qt-name-sub">${it.nameEn}</div></td>
           <td><span class="qt-vol">${it.volume}</span></td>
           <td style="text-align:right">$${it.pricing.usd.toFixed(2)}</td>
           <td>
@@ -418,25 +567,25 @@
       });
     });
 
-    rows += `<tr class="qt-total"><td colspan="4" style="text-align:right">ИТОГО / TOTAL</td><td style="text-align:center">${totalQty}</td><td style="text-align:right;font-size:16px">$${totalUsd.toFixed(2)}</td></tr>`;
+    rows += `<tr class="qt-total"><td colspan="4" style="text-align:right">${L('qtTotal')}</td><td style="text-align:center">${totalQty}</td><td style="text-align:right;font-size:16px">$${totalUsd.toFixed(2)}</td></tr>`;
 
     const body = document.getElementById("quoteBody");
     body.innerHTML = `
       <table class="qt">
         <thead><tr>
           <th style="width:50px"></th>
-          <th>Наименование</th>
-          <th>Объём</th>
-          <th style="text-align:right">Цена</th>
-          <th>Кол-во</th>
-          <th style="text-align:right">Сумма</th>
+          <th>${L('qtNameCol')}</th>
+          <th>${L('qtVolCol')}</th>
+          <th style="text-align:right">${L('qtPriceCol')}</th>
+          <th>${L('qtQtyCol')}</th>
+          <th style="text-align:right">${L('qtSumCol')}</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
       <div class="qt-summary">
-        <div class="qt-summary-box"><div class="qt-summary-label">Товаров</div><div class="qt-summary-value">${selected.length}</div></div>
-        <div class="qt-summary-box"><div class="qt-summary-label">Кол-во</div><div class="qt-summary-value">${totalQty}</div></div>
-        <div class="qt-summary-box total"><div class="qt-summary-label">Итого</div><div class="qt-summary-value">$${totalUsd.toFixed(2)}</div></div>
+        <div class="qt-summary-box"><div class="qt-summary-label">${L('qtSumProducts')}</div><div class="qt-summary-value">${selected.length}</div></div>
+        <div class="qt-summary-box"><div class="qt-summary-label">${L('qtSumQty')}</div><div class="qt-summary-value">${totalQty}</div></div>
+        <div class="qt-summary-box total"><div class="qt-summary-label">${L('qtSumTotal')}</div><div class="qt-summary-value">$${totalUsd.toFixed(2)}</div></div>
       </div>`;
 
     // Qty buttons inside preview
