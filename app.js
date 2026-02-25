@@ -55,15 +55,15 @@
     updateAll();
   }
 
-  function addToAll(defaultQty) {
+  function addToAll(addQty) {
     DATA.products.forEach(p => {
-      if (getQty(p.id) === 0) setQty(p.id, defaultQty);
+      setQty(p.id, getQty(p.id) + addQty);
     });
   }
 
-  function addToSection(secId, defaultQty) {
+  function addToSection(secId, addQty) {
     DATA.products.filter(p => p.sectionId === secId).forEach(p => {
-      if (getQty(p.id) === 0) setQty(p.id, defaultQty);
+      setQty(p.id, getQty(p.id) + addQty);
     });
   }
 
@@ -82,6 +82,7 @@
   function renderTabs() {
     const nav = document.getElementById("sectionTabs");
     let html = `<button class="tab-btn active" data-tab="all">Все<span class="tab-count" id="tc-all"></span></button>`;
+    html += `<button class="tab-btn tab-selected" data-tab="selected">🛒 Выбранные<span class="tab-count" id="tc-selected"></span></button>`;
     DATA.sections.forEach(s => {
       html += `<button class="tab-btn" data-tab="${s.id}">${s.num} ${s.title}<span class="tab-count" id="tc-${s.id}"></span></button>`;
     });
@@ -91,6 +92,7 @@
   function updateTabCounts() {
     const total = Object.keys(cart).length;
     setTabCount("all", total);
+    setTabCount("selected", total);
     DATA.sections.forEach(s => {
       const cnt = DATA.products.filter(p => p.sectionId === s.id && cart[p.id]).length;
       setTabCount(s.id, cnt);
@@ -186,6 +188,32 @@
     document.getElementById("bottomBar").classList.toggle("visible", prods > 0);
     document.getElementById("emptyState").classList.toggle("visible", prods === 0);
     updateTabCounts();
+    if (activeTab === "selected") applyFilter();
+  }
+
+  function applyFilter() {
+    if (activeTab === "selected") {
+      // Show only selected products — hide entire sections if no selected products in them
+      document.querySelectorAll(".section-group").forEach(g => {
+        const secId = g.dataset.section;
+        const hasSelected = DATA.products.some(p => p.sectionId === secId && cart[p.id]);
+        g.classList.toggle("visible", hasSelected);
+      });
+      // Hide individual cards with qty 0
+      document.querySelectorAll(".product-card").forEach(c => {
+        const pid = parseInt(c.id.replace("c-", ""));
+        c.style.display = cart[pid] ? "" : "none";
+      });
+    } else {
+      // Normal section filter
+      document.querySelectorAll(".section-group").forEach(g => {
+        g.classList.toggle("visible", activeTab === "all" || g.dataset.section === activeTab);
+      });
+      // Show all cards
+      document.querySelectorAll(".product-card").forEach(c => {
+        c.style.display = "";
+      });
+    }
   }
 
   // === EVENTS ===
@@ -197,9 +225,7 @@
       activeTab = btn.dataset.tab;
       document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-      document.querySelectorAll(".section-group").forEach(g => {
-        g.classList.toggle("visible", activeTab === "all" || g.dataset.section === activeTab);
-      });
+      applyFilter();
     });
 
     const grid = document.getElementById("productGrid");

@@ -137,6 +137,8 @@ body {
   transition: var(--transition);
   min-height: var(--touch-min);
 }
+.tab-selected { color: var(--gold); font-weight: 600; }
+.tab-selected.active { border-bottom-color: var(--gold); background: var(--gold-light); }
 .tab-btn:hover { color: var(--navy); }
 .tab-btn.active {
   color: var(--navy);
