@@ -379,54 +379,97 @@
   }
 
   // === IMAGE PRELOADING FOR PDF ===
+  const PLACEHOLDER_IMG = 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect fill="#f0f0f0" width="80" height="80" rx="4"/><text x="40" y="44" text-anchor="middle" fill="#bbb" font-size="9" font-family="sans-serif">No Image</text></svg>');
+
   function showLoading(msg) {
-    const el = document.getElementById("loadingOverlay");
-    document.getElementById("loadingMsg").textContent = msg || "Загрузка...";
-    el.classList.add("open");
+    const el = document.getElementById('loadingOverlay');
+    document.getElementById('loadingMsg').textContent = msg || 'Загрузка...';
+    el.classList.add('open');
   }
   function updateLoading(msg) {
-    document.getElementById("loadingMsg").textContent = msg;
+    document.getElementById('loadingMsg').textContent = msg;
   }
   function hideLoading() {
-    document.getElementById("loadingOverlay").classList.remove("open");
+    document.getElementById('loadingOverlay').classList.remove('open');
   }
 
   async function fetchImageAsBase64(url) {
-    // Strategy 1: Proxy (Vercel deployed)
+    if (!url || url.startsWith('data:')) return url || PLACEHOLDER_IMG;
+
+    // Strategy 1: Proxy (works on Vercel)
     try {
       const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(url)}`;
-      const res = await fetch(proxyUrl);
+      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
       if (res.ok) {
         const blob = await res.blob();
-        return await blobToBase64(blob);
+        const b64 = await blobToBase64(blob);
+        if (b64 && b64.length > 100) return b64;
       }
     } catch {}
-    // Strategy 2: Direct fetch (same-origin or CORS-friendly)
+
+    // Strategy 2: Direct fetch
     try {
-      const res = await fetch(url, { mode: "cors" });
+      const res = await fetch(url, { mode: 'cors', signal: AbortSignal.timeout(8000) });
       if (res.ok) {
         const blob = await res.blob();
-        return await blobToBase64(blob);
+        const b64 = await blobToBase64(blob);
+        if (b64 && b64.length > 100) return b64;
       }
     } catch {}
+
     // Strategy 3: Canvas from loaded DOM image
     try {
-      const img = document.querySelector(`img[src="${CSS.escape(url)}"]`);
-      if (img && img.naturalWidth > 0) {
-        const c = document.createElement("canvas");
-        c.width = 80; c.height = 80;
-        c.getContext("2d").drawImage(img, 0, 0, 80, 80);
-        return c.toDataURL("image/jpeg", 0.85);
+      const imgs = document.querySelectorAll('img');
+      for (const img of imgs) {
+        if (img.src === url && img.naturalWidth > 0 && img.complete) {
+          const c = document.createElement('canvas');
+          c.width = 80; c.height = 80;
+          const ctx = c.getContext('2d');
+          ctx.fillStyle = '#f3f3f3';
+          ctx.fillRect(0, 0, 80, 80);
+          // Fit image
+          const scale = Math.min(80 / img.naturalWidth, 80 / img.naturalHeight);
+          const w = img.naturalWidth * scale;
+          const h = img.naturalHeight * scale;
+          ctx.drawImage(img, (80 - w) / 2, (80 - h) / 2, w, h);
+          return c.toDataURL('image/jpeg', 0.85);
+        }
       }
     } catch {}
-    return "";
+
+    // Strategy 4: Load fresh via Image element
+    try {
+      const b64 = await new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const c = document.createElement('canvas');
+          c.width = 80; c.height = 80;
+          const ctx = c.getContext('2d');
+          ctx.fillStyle = '#f3f3f3';
+          ctx.fillRect(0, 0, 80, 80);
+          const scale = Math.min(80 / img.naturalWidth, 80 / img.naturalHeight);
+          const w = img.naturalWidth * scale;
+          const h = img.naturalHeight * scale;
+          ctx.drawImage(img, (80 - w) / 2, (80 - h) / 2, w, h);
+          resolve(c.toDataURL('image/jpeg', 0.85));
+        };
+        img.onerror = () => resolve('');
+        // Try proxy URL for the Image element too
+        img.src = `/api/proxy-image?url=${encodeURIComponent(url)}`;
+        setTimeout(() => resolve(''), 6000);
+      });
+      if (b64 && b64.length > 100) return b64;
+    } catch {}
+
+    return PLACEHOLDER_IMG;
   }
 
   function blobToBase64(blob) {
     return new Promise(resolve => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result);
-      reader.onerror = () => resolve("");
+      reader.onerror = () => resolve('');
       reader.readAsDataURL(blob);
     });
   }
@@ -435,13 +478,16 @@
     const total = products.length;
     let done = 0;
     const results = {};
-    const batch = products.map(async (p) => {
-      const b64 = await fetchImageAsBase64(p.image);
-      results[p.id] = b64;
-      done++;
-      updateLoading(`Загрузка изображений: ${done}/${total}`);
-    });
-    await Promise.all(batch);
+    // Process in batches of 6 to avoid overwhelming browser
+    const batchSize = 6;
+    for (let i = 0; i < products.length; i += batchSize) {
+      const batch = products.slice(i, i + batchSize);
+      await Promise.all(batch.map(async (p) => {
+        results[p.id] = await fetchImageAsBase64(p.image);
+        done++;
+        updateLoading(`Загрузка изображений: ${done}/${total}`);
+      }));
+    }
     return results;
   }
 
@@ -461,20 +507,20 @@
       : getSelected();
 
     if (!products.length) {
-      alert("Нет выбранных товаров\n선택된 제품이 없습니다");
+      alert('Нет выбранных товаров\n선택된 제품이 없습니다');
       return;
     }
 
-    showLoading("Подготовка котировки...");
+    showLoading('Подготовка котировки...');
 
-    // Preload all product images as base64
+    // Preload ALL images as base64 (CRITICAL: avoids CORS in html2canvas)
     try {
       imageCache = await preloadImages(products);
     } catch {
       imageCache = {};
     }
 
-    updateLoading("Создание PDF...");
+    updateLoading('Создание PDF...');
 
     // Group by section (preserve section order)
     const grouped = {};
@@ -484,27 +530,25 @@
     });
 
     let totalQty = 0, totalUsd = 0, idx = 0;
-    let rows = "";
+    let rows = '';
 
     Object.values(grouped).forEach(({ sec, items }) => {
       if (!items.length) return;
       const secSum = items.reduce((s, i) => s + i.pricing.usd * i.qty, 0);
-      rows += `<tr class="pdf-sec-row"><td colspan="7" style="background:#e8eaf6;font-weight:700;color:#1a237e;border-bottom:2px solid #3f51b5;font-size:10px;padding:5px 8px">${sec.num}. ${sec.title} — ${sec.titleRu || ""}<span style="float:right;font-size:9px;color:#555">$${secSum.toFixed(2)}</span></td></tr>`;
+      rows += `<tr><td colspan="7" style="background:#e8eaf6;font-weight:700;color:#1a237e;border-bottom:2px solid #3f51b5;font-size:10px;padding:5px 8px">${sec.num}. ${sec.title} — ${sec.titleRu || ''}<span style="float:right;font-size:9px;color:#555">$${secSum.toFixed(2)}</span></td></tr>`;
 
       items.forEach(it => {
         idx++;
         const sub = it.pricing.usd * it.qty;
         totalQty += it.qty;
         totalUsd += sub;
-        const bg = idx % 2 ? "#fff" : "#f7f8fc";
-        const imgSrc = imageCache[it.id] || it.image;
-        const imgTag = imgSrc
-          ? `<img src="${imgSrc}" style="width:32px;height:32px;object-fit:contain;border-radius:3px;background:#f3f3f3;display:block" crossorigin="anonymous">`
-          : `<div style="width:32px;height:32px;background:#f0f0f0;border-radius:3px"></div>`;
+        const bg = idx % 2 ? '#fff' : '#f7f8fc';
+        // ALWAYS use base64 from cache, fallback to placeholder
+        const imgSrc = imageCache[it.id] || PLACEHOLDER_IMG;
 
         rows += `<tr style="background:${bg}">
           <td style="text-align:center;font-size:8px;color:#999;padding:3px 4px">${idx}</td>
-          <td style="padding:2px 4px;width:36px">${imgTag}</td>
+          <td style="padding:2px 4px;width:36px"><img src="${imgSrc}" style="width:32px;height:32px;object-fit:contain;border-radius:3px;background:#f3f3f3;display:block"></td>
           <td style="padding:3px 6px"><strong style="font-size:8.5px;color:#1a237e">${it.nameRu}</strong><br><span style="color:#888;font-size:6.5px">${it.nameEn}</span><br><span style="color:#bbb;font-size:6px">${it.nameKr}</span></td>
           <td style="text-align:center;font-weight:700;font-size:8px;color:#1a237e">${it.volume}</td>
           <td style="text-align:right;font-size:8.5px;padding:3px 6px">$${it.pricing.usd.toFixed(2)}</td>
@@ -516,11 +560,10 @@
 
     const today = fmtDate(new Date());
     const pdfHTML = `
-      <div style="font-family:'Outfit',Helvetica,Arial,sans-serif;padding:14px 18px;color:#222;max-width:1100px">
-        <!-- HEADER -->
+      <div style="font-family:Helvetica,Arial,sans-serif;padding:14px 18px;color:#222;width:1100px">
         <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #1a237e;padding-bottom:8px;margin-bottom:8px">
           <div>
-            <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:700;color:#1a237e;letter-spacing:3px">AMPLE:N</div>
+            <div style="font-size:28px;font-weight:700;color:#1a237e;letter-spacing:3px">AMPLE:N</div>
             <div style="font-size:10px;color:#666;margin-top:2px">Коммерческое предложение / Commercial Quotation / 견적서</div>
           </div>
           <div style="text-align:right;font-size:9px;color:#555">
@@ -529,8 +572,6 @@
             <div><strong>Товаров:</strong> ${products.length} наименований</div>
           </div>
         </div>
-
-        <!-- TABLE -->
         <table style="width:100%;border-collapse:collapse;font-size:8.5px;table-layout:fixed">
           <colgroup>
             <col style="width:4%">
@@ -561,31 +602,44 @@
             </tr>
           </tbody>
         </table>
-
-        <!-- FOOTER -->
         <div style="margin-top:8px;padding-top:6px;border-top:1px solid #ddd;display:flex;justify-content:space-between;font-size:7px;color:#999">
           <span>AMPLE:N Uzbekistan · Dealer Quotation · Confidential</span>
           <span>${today} · $1 = ₩${EXCHANGE_RATE.toLocaleString()}</span>
         </div>
       </div>`;
 
-    const tpl = document.getElementById("pdfTemplate");
+    // CRITICAL: Use offscreen rendering instead of display:none
+    // html2canvas cannot capture display:none elements
+    const tpl = document.getElementById('pdfTemplate');
     tpl.innerHTML = pdfHTML;
-    tpl.style.display = "block";
+    tpl.style.cssText = 'position:fixed;left:0;top:0;width:1100px;z-index:-9999;opacity:0;pointer-events:none;background:#fff;';
+
+    // Wait for DOM paint
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
     try {
       await html2pdf().set({
         margin: [6, 6, 6, 6],
-        filename: `AMPLEN_Quotation_${products.length}items_${new Date().toISOString().slice(0, 10).replace(/-/g, "")}.pdf`,
-        image: { type: "jpeg", quality: 0.92 },
-        html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false },
-        jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
-        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+        filename: `AMPLEN_Quotation_${products.length}items_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.pdf`,
+        image: { type: 'jpeg', quality: 0.92 },
+        html2canvas: {
+          scale: 2,
+          useCORS: false,
+          allowTaint: false,
+          logging: false,
+          width: 1100,
+          windowWidth: 1100,
+          backgroundColor: '#ffffff',
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
       }).from(tpl).save();
     } catch (err) {
-      alert("PDF 생성 오류: " + err.message);
+      console.error('PDF generation error:', err);
+      alert('PDF 생성 오류: ' + err.message);
     } finally {
-      tpl.style.display = "none";
+      tpl.style.cssText = 'display:none';
+      tpl.innerHTML = '';
       hideLoading();
     }
   }
