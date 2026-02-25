@@ -20,6 +20,7 @@
   // === INIT ===
   async function init() {
     document.getElementById("dateLabel").textContent = fmtDate(new Date());
+    startUzbekClock();
 
     try {
       const res = await fetch("products.json");
@@ -38,6 +39,20 @@
 
   function fmtDate(d) {
     return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+  }
+
+  function startUzbekClock() {
+    const el = document.getElementById('clockLabel');
+    function tick() {
+      const now = new Date();
+      const uzb = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tashkent' }));
+      const h = String(uzb.getHours()).padStart(2, '0');
+      const m = String(uzb.getMinutes()).padStart(2, '0');
+      const s = String(uzb.getSeconds()).padStart(2, '0');
+      el.textContent = '🇺🇿 ' + h + ':' + m + ':' + s;
+    }
+    tick();
+    setInterval(tick, 1000);
   }
 
   // === CART ===
