@@ -26,6 +26,7 @@
     </div>
     <!-- QUICK ACTIONS -->
     <div class="quick-actions">
+      <button class="btn-quick btn-quick-gold" id="btnFullQuote">📄 Полная котировка (38 товаров)</button>
       <button class="btn-quick" id="btnAddAll1">＋ Все по 1 шт.</button>
       <button class="btn-quick" id="btnAddAll3">＋ Все по 3 шт.</button>
       <button class="btn-quick btn-quick-danger" id="btnResetTop">↺ Сброс</button>
@@ -67,6 +68,7 @@
         <button class="btn-quote" id="btnQuote">📋 Просмотр</button>
         <button class="btn-pdf" id="btnPdf">📄 PDF</button>
       </div>
+    </div>
   </div>
 
   <!-- QUOTATION PREVIEW MODAL -->
@@ -81,6 +83,14 @@
         <button class="btn-reset" id="quoteBack">← Назад</button>
         <button class="btn-pdf" id="quotePdf">📄 Скачать PDF</button>
       </div>
+    </div>
+  </div>
+
+  <!-- LOADING OVERLAY -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-modal">
+      <div class="loading-spinner"></div>
+      <div class="loading-msg" id="loadingMsg">Загрузка...</div>
     </div>
   </div>
 

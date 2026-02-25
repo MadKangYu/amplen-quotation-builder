@@ -3,7 +3,7 @@
    - Russian primary language
    - USD only on customer UI
    - KRW in data layer (products.json)
-   - Mobile-first, 48px touch targets
+   - PC-focused, A4 landscape PDF
    ============================ */
 
 (function () {
@@ -15,6 +15,7 @@
   let DATA = { sections: [], products: [] };
   let cart = {}; // { productId: qty }
   let activeTab = "all";
+  let imageCache = {}; // { productId: base64DataUrl }
 
   // === INIT ===
   async function init() {
@@ -193,23 +194,19 @@
 
   function applyFilter() {
     if (activeTab === "selected") {
-      // Show only selected products — hide entire sections if no selected products in them
       document.querySelectorAll(".section-group").forEach(g => {
         const secId = g.dataset.section;
         const hasSelected = DATA.products.some(p => p.sectionId === secId && cart[p.id]);
         g.classList.toggle("visible", hasSelected);
       });
-      // Hide individual cards with qty 0
       document.querySelectorAll(".product-card").forEach(c => {
         const pid = parseInt(c.id.replace("c-", ""));
         c.style.display = cart[pid] ? "" : "none";
       });
     } else {
-      // Normal section filter
       document.querySelectorAll(".section-group").forEach(g => {
         g.classList.toggle("visible", activeTab === "all" || g.dataset.section === activeTab);
       });
-      // Show all cards
       document.querySelectorAll(".product-card").forEach(c => {
         c.style.display = "";
       });
@@ -272,18 +269,21 @@
       if (confirm("Сбросить все количества?\n모든 수량을 초기화합니다?")) resetAll();
     });
 
+    // Full quotation button
+    document.getElementById("btnFullQuote").addEventListener("click", generateFullQuotation);
+
     // Bottom bar
     document.getElementById("btnReset").addEventListener("click", () => {
       if (Object.keys(cart).length === 0) return;
       if (confirm("Сбросить все количества?\n모든 수량을 초기화합니다?")) resetAll();
     });
-    document.getElementById("btnPdf").addEventListener("click", generatePdf);
+    document.getElementById("btnPdf").addEventListener("click", () => generatePdf(false));
 
     // Quotation preview
     document.getElementById("btnQuote").addEventListener("click", openQuotePreview);
     document.getElementById("quoteClose").addEventListener("click", closeQuotePreview);
     document.getElementById("quoteBack").addEventListener("click", closeQuotePreview);
-    document.getElementById("quotePdf").addEventListener("click", () => { closeQuotePreview(); generatePdf(); });
+    document.getElementById("quotePdf").addEventListener("click", () => { closeQuotePreview(); generatePdf(false); });
     document.getElementById("quoteOverlay").addEventListener("click", e => {
       if (e.target === e.currentTarget) closeQuotePreview();
     });
@@ -378,21 +378,110 @@
     return selected;
   }
 
-  // === PDF ===
-  function generatePdf() {
-    const selected = [];
-    Object.entries(cart).forEach(([pid, qty]) => {
-      if (qty > 0) {
-        const p = DATA.products.find(x => x.id === parseInt(pid));
-        if (p) selected.push({ ...p, qty });
-      }
-    });
-    if (!selected.length) { alert("Нет выбранных товаров\n선택된 제품이 없습니다"); return; }
+  // === IMAGE PRELOADING FOR PDF ===
+  function showLoading(msg) {
+    const el = document.getElementById("loadingOverlay");
+    document.getElementById("loadingMsg").textContent = msg || "Загрузка...";
+    el.classList.add("open");
+  }
+  function updateLoading(msg) {
+    document.getElementById("loadingMsg").textContent = msg;
+  }
+  function hideLoading() {
+    document.getElementById("loadingOverlay").classList.remove("open");
+  }
 
-    // Group by section order
+  async function fetchImageAsBase64(url) {
+    // Strategy 1: Proxy (Vercel deployed)
+    try {
+      const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(url)}`;
+      const res = await fetch(proxyUrl);
+      if (res.ok) {
+        const blob = await res.blob();
+        return await blobToBase64(blob);
+      }
+    } catch {}
+    // Strategy 2: Direct fetch (same-origin or CORS-friendly)
+    try {
+      const res = await fetch(url, { mode: "cors" });
+      if (res.ok) {
+        const blob = await res.blob();
+        return await blobToBase64(blob);
+      }
+    } catch {}
+    // Strategy 3: Canvas from loaded DOM image
+    try {
+      const img = document.querySelector(`img[src="${CSS.escape(url)}"]`);
+      if (img && img.naturalWidth > 0) {
+        const c = document.createElement("canvas");
+        c.width = 80; c.height = 80;
+        c.getContext("2d").drawImage(img, 0, 0, 80, 80);
+        return c.toDataURL("image/jpeg", 0.85);
+      }
+    } catch {}
+    return "";
+  }
+
+  function blobToBase64(blob) {
+    return new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = () => resolve("");
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function preloadImages(products) {
+    const total = products.length;
+    let done = 0;
+    const results = {};
+    const batch = products.map(async (p) => {
+      const b64 = await fetchImageAsBase64(p.image);
+      results[p.id] = b64;
+      done++;
+      updateLoading(`Загрузка изображений: ${done}/${total}`);
+    });
+    await Promise.all(batch);
+    return results;
+  }
+
+  // === FULL QUOTATION (38 products × 1EA) ===
+  async function generateFullQuotation() {
+    // Add all products at qty 1 if not already in cart
+    DATA.products.forEach(p => {
+      if (!cart[p.id]) setQty(p.id, 1);
+    });
+    await generatePdf(true);
+  }
+
+  // === PDF GENERATION ===
+  async function generatePdf(isFullQuotation) {
+    const products = isFullQuotation
+      ? DATA.products.map(p => ({ ...p, qty: getQty(p.id) || 1 }))
+      : getSelected();
+
+    if (!products.length) {
+      alert("Нет выбранных товаров\n선택된 제품이 없습니다");
+      return;
+    }
+
+    showLoading("Подготовка котировки...");
+
+    // Preload all product images as base64
+    try {
+      imageCache = await preloadImages(products);
+    } catch {
+      imageCache = {};
+    }
+
+    updateLoading("Создание PDF...");
+
+    // Group by section (preserve section order)
     const grouped = {};
     DATA.sections.forEach(s => { grouped[s.id] = { sec: s, items: [] }; });
-    selected.forEach(it => { if (grouped[it.sectionId]) grouped[it.sectionId].items.push(it); });
+    products.forEach(it => {
+      if (grouped[it.sectionId]) grouped[it.sectionId].items.push(it);
+    });
 
     let totalQty = 0, totalUsd = 0, idx = 0;
     let rows = "";
@@ -400,69 +489,105 @@
     Object.values(grouped).forEach(({ sec, items }) => {
       if (!items.length) return;
       const secSum = items.reduce((s, i) => s + i.pricing.usd * i.qty, 0);
-      rows += `<tr class="pdf-sec-row"><td colspan="5">${sec.num}. ${sec.title} — ${sec.titleRu || ""}</td><td style="text-align:right">$${secSum.toFixed(2)}</td></tr>`;
+      rows += `<tr class="pdf-sec-row"><td colspan="7" style="background:#e8eaf6;font-weight:700;color:#1a237e;border-bottom:2px solid #3f51b5;font-size:10px;padding:5px 8px">${sec.num}. ${sec.title} — ${sec.titleRu || ""}<span style="float:right;font-size:9px;color:#555">$${secSum.toFixed(2)}</span></td></tr>`;
+
       items.forEach(it => {
         idx++;
         const sub = it.pricing.usd * it.qty;
         totalQty += it.qty;
         totalUsd += sub;
-        rows += `<tr style="background:${idx % 2 ? "#fff" : "#f9f9f9"}">
-          <td style="text-align:center">${idx}</td>
-          <td><strong>${it.nameRu}</strong><br><span style="color:#777;font-size:7px">${it.nameEn}</span><br><span style="color:#aaa;font-size:7px">${it.nameKr}</span></td>
-          <td style="text-align:center;font-weight:700">${it.volume}</td>
-          <td style="text-align:right">$${it.pricing.usd.toFixed(2)}</td>
-          <td style="text-align:center">${it.qty}</td>
-          <td style="text-align:right;font-weight:700">$${sub.toFixed(2)}</td>
+        const bg = idx % 2 ? "#fff" : "#f7f8fc";
+        const imgSrc = imageCache[it.id] || it.image;
+        const imgTag = imgSrc
+          ? `<img src="${imgSrc}" style="width:32px;height:32px;object-fit:contain;border-radius:3px;background:#f3f3f3;display:block" crossorigin="anonymous">`
+          : `<div style="width:32px;height:32px;background:#f0f0f0;border-radius:3px"></div>`;
+
+        rows += `<tr style="background:${bg}">
+          <td style="text-align:center;font-size:8px;color:#999;padding:3px 4px">${idx}</td>
+          <td style="padding:2px 4px;width:36px">${imgTag}</td>
+          <td style="padding:3px 6px"><strong style="font-size:8.5px;color:#1a237e">${it.nameRu}</strong><br><span style="color:#888;font-size:6.5px">${it.nameEn}</span><br><span style="color:#bbb;font-size:6px">${it.nameKr}</span></td>
+          <td style="text-align:center;font-weight:700;font-size:8px;color:#1a237e">${it.volume}</td>
+          <td style="text-align:right;font-size:8.5px;padding:3px 6px">$${it.pricing.usd.toFixed(2)}</td>
+          <td style="text-align:center;font-size:9px;font-weight:700;color:#1a237e">${it.qty}</td>
+          <td style="text-align:right;font-weight:700;font-size:9px;padding:3px 6px;color:#1a237e">$${sub.toFixed(2)}</td>
         </tr>`;
       });
     });
 
     const today = fmtDate(new Date());
     const pdfHTML = `
-      <div class="pdf-wrap">
-        <div class="pdf-header">
+      <div style="font-family:'Outfit',Helvetica,Arial,sans-serif;padding:14px 18px;color:#222;max-width:1100px">
+        <!-- HEADER -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #1a237e;padding-bottom:8px;margin-bottom:8px">
           <div>
-            <div class="pdf-brand">AMPLE:N</div>
-            <div style="font-size:9px;color:#666">Коммерческое предложение / 견적서</div>
+            <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:700;color:#1a237e;letter-spacing:3px">AMPLE:N</div>
+            <div style="font-size:10px;color:#666;margin-top:2px">Коммерческое предложение / Commercial Quotation / 견적서</div>
           </div>
-          <div class="pdf-info">
-            <strong>Дата:</strong> ${today}<br>
-            <strong>Курс:</strong> $1 = ₩${EXCHANGE_RATE.toLocaleString()}
+          <div style="text-align:right;font-size:9px;color:#555">
+            <div><strong>Дата:</strong> ${today}</div>
+            <div><strong>Курс:</strong> $1 = ₩${EXCHANGE_RATE.toLocaleString()}</div>
+            <div><strong>Товаров:</strong> ${products.length} наименований</div>
           </div>
         </div>
-        <table class="pdf-table">
-          <thead><tr>
-            <th style="width:4%">№</th>
-            <th style="width:36%">Наименование / Product</th>
-            <th style="width:10%">Объём</th>
-            <th style="width:12%">Цена</th>
-            <th style="width:8%">Кол-во</th>
-            <th style="width:14%">Сумма</th>
-          </tr></thead>
+
+        <!-- TABLE -->
+        <table style="width:100%;border-collapse:collapse;font-size:8.5px;table-layout:fixed">
+          <colgroup>
+            <col style="width:4%">
+            <col style="width:5%">
+            <col style="width:38%">
+            <col style="width:10%">
+            <col style="width:12%">
+            <col style="width:8%">
+            <col style="width:13%">
+          </colgroup>
+          <thead>
+            <tr style="background:#1a237e;color:#fff">
+              <th style="padding:5px 4px;text-align:center;font-weight:600;font-size:8px">№</th>
+              <th style="padding:5px 4px;font-weight:600;font-size:8px">Фото</th>
+              <th style="padding:5px 6px;font-weight:600;font-size:8px">Наименование / Product</th>
+              <th style="padding:5px 4px;text-align:center;font-weight:600;font-size:8px">Объём</th>
+              <th style="padding:5px 6px;text-align:right;font-weight:600;font-size:8px">Цена (USD)</th>
+              <th style="padding:5px 4px;text-align:center;font-weight:600;font-size:8px">Кол-во</th>
+              <th style="padding:5px 6px;text-align:right;font-weight:600;font-size:8px">Сумма (USD)</th>
+            </tr>
+          </thead>
           <tbody>
             ${rows}
-            <tr class="pdf-total-row">
-              <td colspan="4" style="text-align:right">ИТОГО / TOTAL (${selected.length} наименований)</td>
-              <td style="text-align:center">${totalQty}</td>
-              <td style="text-align:right;font-size:13px">$${totalUsd.toFixed(2)}</td>
+            <tr style="background:#1a237e;color:#fff">
+              <td colspan="5" style="text-align:right;font-weight:700;font-size:10px;padding:7px 8px">ИТОГО / TOTAL (${products.length} наименований)</td>
+              <td style="text-align:center;font-weight:700;font-size:10px;padding:7px 4px">${totalQty}</td>
+              <td style="text-align:right;font-weight:700;font-size:13px;padding:7px 8px">$${totalUsd.toFixed(2)}</td>
             </tr>
           </tbody>
         </table>
-        <div class="pdf-footer">AMPLE:N Uzbekistan · Dealer Quotation · Confidential · ${today}</div>
+
+        <!-- FOOTER -->
+        <div style="margin-top:8px;padding-top:6px;border-top:1px solid #ddd;display:flex;justify-content:space-between;font-size:7px;color:#999">
+          <span>AMPLE:N Uzbekistan · Dealer Quotation · Confidential</span>
+          <span>${today} · $1 = ₩${EXCHANGE_RATE.toLocaleString()}</span>
+        </div>
       </div>`;
 
     const tpl = document.getElementById("pdfTemplate");
     tpl.innerHTML = pdfHTML;
     tpl.style.display = "block";
 
-    html2pdf().set({
-      margin: [8, 8, 8, 8],
-      filename: `AMPLEN_Quotation_${new Date().toISOString().slice(0, 10).replace(/-/g, "")}.pdf`,
-      image: { type: "jpeg", quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
-      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
-    }).from(tpl).save().then(() => { tpl.style.display = "none"; });
+    try {
+      await html2pdf().set({
+        margin: [6, 6, 6, 6],
+        filename: `AMPLEN_Quotation_${products.length}items_${new Date().toISOString().slice(0, 10).replace(/-/g, "")}.pdf`,
+        image: { type: "jpeg", quality: 0.92 },
+        html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false },
+        jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
+        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+      }).from(tpl).save();
+    } catch (err) {
+      alert("PDF 생성 오류: " + err.message);
+    } finally {
+      tpl.style.display = "none";
+      hideLoading();
+    }
   }
 
   document.addEventListener("DOMContentLoaded", init);
