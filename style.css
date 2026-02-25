@@ -1011,3 +1011,110 @@ body {
   border-radius: 3px;
 }
 .quote-modal-body::-webkit-scrollbar-thumb:hover { background: var(--text-light); }
+
+/* === CART FILTER BUTTON (Bottom Bar) === */
+.btn-cart-filter {
+  background: rgba(26,35,126,0.06);
+  color: var(--navy-text);
+  border: 1px solid var(--border);
+  padding: 0 18px;
+  height: var(--touch-min);
+  border-radius: 12px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-cart-filter:hover { background: rgba(26,35,126,0.1); border-color: var(--navy); }
+.btn-cart-filter.active {
+  background: var(--navy);
+  color: var(--white);
+  border-color: var(--navy);
+  box-shadow: 0 4px 12px rgba(26,35,126,0.25);
+}
+.btn-cart-filter.active .cart-filter-count { background: var(--gold); color: var(--navy-dark); }
+.cart-filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--navy);
+  color: var(--white);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* === SECTION CATEGORY COLORS === */
+:root {
+  --cat-hyaluron: #4A90D9;
+  --cat-peptide: #8B6BAE;
+  --cat-bbsun: #E0875C;
+  --cat-acne: #5BA88C;
+  --cat-vc: #D4A843;
+  --cat-special: #C9A84C;
+  --cat-ceramide: #C97B8B;
+  --cat-centel: #5AAFA8;
+  --cat-blemy: #9B89B3;
+  --cat-entangle: #B08968;
+  --cat-tint: #D4616E;
+}
+
+/* Section header left border per line */
+[data-section="hyaluron"] .section-header { border-left-color: var(--cat-hyaluron); }
+[data-section="peptide"] .section-header { border-left-color: var(--cat-peptide); }
+[data-section="bbsun"] .section-header { border-left-color: var(--cat-bbsun); }
+[data-section="acne"] .section-header { border-left-color: var(--cat-acne); }
+[data-section="vc"] .section-header { border-left-color: var(--cat-vc); }
+[data-section="special"] .section-header { border-left-color: var(--cat-special); }
+[data-section="ceramide"] .section-header { border-left-color: var(--cat-ceramide); }
+[data-section="centel"] .section-header { border-left-color: var(--cat-centel); }
+[data-section="blemy"] .section-header { border-left-color: var(--cat-blemy); }
+[data-section="entangle"] .section-header { border-left-color: var(--cat-entangle); }
+[data-section="tint"] .section-header { border-left-color: var(--cat-tint); }
+
+/* Section header ::before glow per line */
+[data-section="hyaluron"] .section-header::before { background: linear-gradient(90deg, rgba(74,144,217,0.08) 0%, transparent 100%); }
+[data-section="peptide"] .section-header::before { background: linear-gradient(90deg, rgba(139,107,174,0.08) 0%, transparent 100%); }
+[data-section="bbsun"] .section-header::before { background: linear-gradient(90deg, rgba(224,135,92,0.08) 0%, transparent 100%); }
+[data-section="acne"] .section-header::before { background: linear-gradient(90deg, rgba(91,168,140,0.08) 0%, transparent 100%); }
+[data-section="vc"] .section-header::before { background: linear-gradient(90deg, rgba(212,168,67,0.08) 0%, transparent 100%); }
+[data-section="special"] .section-header::before { background: linear-gradient(90deg, rgba(201,168,76,0.08) 0%, transparent 100%); }
+[data-section="ceramide"] .section-header::before { background: linear-gradient(90deg, rgba(201,123,139,0.08) 0%, transparent 100%); }
+[data-section="centel"] .section-header::before { background: linear-gradient(90deg, rgba(90,175,168,0.08) 0%, transparent 100%); }
+[data-section="blemy"] .section-header::before { background: linear-gradient(90deg, rgba(155,137,179,0.08) 0%, transparent 100%); }
+[data-section="entangle"] .section-header::before { background: linear-gradient(90deg, rgba(176,137,104,0.08) 0%, transparent 100%); }
+[data-section="tint"] .section-header::before { background: linear-gradient(90deg, rgba(212,97,110,0.08) 0%, transparent 100%); }
+
+/* Section number color per line */
+[data-section="hyaluron"] .section-num { color: var(--cat-hyaluron); }
+[data-section="peptide"] .section-num { color: var(--cat-peptide); }
+[data-section="bbsun"] .section-num { color: var(--cat-bbsun); }
+[data-section="acne"] .section-num { color: var(--cat-acne); }
+[data-section="vc"] .section-num { color: var(--cat-vc); }
+[data-section="special"] .section-num { color: var(--cat-special); }
+[data-section="ceramide"] .section-num { color: var(--cat-ceramide); }
+[data-section="centel"] .section-num { color: var(--cat-centel); }
+[data-section="blemy"] .section-num { color: var(--cat-blemy); }
+[data-section="entangle"] .section-num { color: var(--cat-entangle); }
+[data-section="tint"] .section-num { color: var(--cat-tint); }
+
+/* Volume badge color per line */
+[data-section="hyaluron"] .card-vol { background: linear-gradient(135deg, rgba(74,144,217,0.92), rgba(74,144,217,0.82)); }
+[data-section="peptide"] .card-vol { background: linear-gradient(135deg, rgba(139,107,174,0.92), rgba(139,107,174,0.82)); }
+[data-section="bbsun"] .card-vol { background: linear-gradient(135deg, rgba(224,135,92,0.92), rgba(224,135,92,0.82)); }
+[data-section="acne"] .card-vol { background: linear-gradient(135deg, rgba(91,168,140,0.92), rgba(91,168,140,0.82)); }
+[data-section="vc"] .card-vol { background: linear-gradient(135deg, rgba(212,168,67,0.92), rgba(212,168,67,0.82)); }
+[data-section="special"] .card-vol { background: linear-gradient(135deg, rgba(201,168,76,0.92), rgba(201,168,76,0.82)); }
+[data-section="ceramide"] .card-vol { background: linear-gradient(135deg, rgba(201,123,139,0.92), rgba(201,123,139,0.82)); }
+[data-section="centel"] .card-vol { background: linear-gradient(135deg, rgba(90,175,168,0.92), rgba(90,175,168,0.82)); }
+[data-section="blemy"] .card-vol { background: linear-gradient(135deg, rgba(155,137,179,0.92), rgba(155,137,179,0.82)); }
+[data-section="entangle"] .card-vol { background: linear-gradient(135deg, rgba(176,137,104,0.92), rgba(176,137,104,0.82)); }
+[data-section="tint"] .card-vol { background: linear-gradient(135deg, rgba(212,97,110,0.92), rgba(212,97,110,0.82)); }

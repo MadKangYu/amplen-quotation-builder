@@ -84,7 +84,7 @@
   function renderTabs() {
     const nav = document.getElementById("sectionTabs");
     let html = `<button class="tab-btn active" data-tab="all">Все<span class="tab-count" id="tc-all"></span></button>`;
-    html += `<button class="tab-btn tab-selected" data-tab="selected">🛒 Выбранные<span class="tab-count" id="tc-selected"></span></button>`;
+    // 🛒 Выбранные moved to bottom bar — no longer in tabs
     DATA.sections.forEach(s => {
       html += `<button class="tab-btn" data-tab="${s.id}">${s.num} ${s.title}<span class="tab-count" id="tc-${s.id}"></span></button>`;
     });
@@ -225,6 +225,25 @@
       btn.classList.add("active");
       applyFilter();
     });
+
+    // 🛒 Cart filter toggle (bottom bar)
+    const btnCart = document.getElementById("btnCartFilter");
+    if (btnCart) {
+      btnCart.addEventListener("click", () => {
+        if (activeTab === "selected") {
+          activeTab = "all";
+          btnCart.classList.remove("active");
+          document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+          const allBtn = document.querySelector('[data-tab="all"]');
+          if (allBtn) allBtn.classList.add("active");
+        } else {
+          activeTab = "selected";
+          btnCart.classList.add("active");
+          document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        }
+        applyFilter();
+      });
+    }
 
     const grid = document.getElementById("productGrid");
 
