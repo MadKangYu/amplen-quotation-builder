@@ -278,6 +278,104 @@
       if (confirm("Сбросить все количества?\n모든 수량을 초기화합니다?")) resetAll();
     });
     document.getElementById("btnPdf").addEventListener("click", generatePdf);
+
+    // Quotation preview
+    document.getElementById("btnQuote").addEventListener("click", openQuotePreview);
+    document.getElementById("quoteClose").addEventListener("click", closeQuotePreview);
+    document.getElementById("quoteBack").addEventListener("click", closeQuotePreview);
+    document.getElementById("quotePdf").addEventListener("click", () => { closeQuotePreview(); generatePdf(); });
+    document.getElementById("quoteOverlay").addEventListener("click", e => {
+      if (e.target === e.currentTarget) closeQuotePreview();
+    });
+  }
+
+  // === QUOTATION PREVIEW ===
+  function openQuotePreview() {
+    const selected = getSelected();
+    if (!selected.length) { alert("Нет выбранных товаров\n선택된 제품이 없습니다"); return; }
+
+    const grouped = {};
+    DATA.sections.forEach(s => { grouped[s.id] = { sec: s, items: [] }; });
+    selected.forEach(it => { if (grouped[it.sectionId]) grouped[it.sectionId].items.push(it); });
+
+    let totalQty = 0, totalUsd = 0, idx = 0;
+    let rows = "";
+
+    Object.values(grouped).forEach(({ sec, items }) => {
+      if (!items.length) return;
+      const secSum = items.reduce((s, i) => s + i.pricing.usd * i.qty, 0);
+      rows += `<tr class="qt-sec"><td colspan="5">${sec.num}. ${sec.title} — ${sec.titleRu || ""}</td><td style="text-align:right">$${secSum.toFixed(2)}</td></tr>`;
+      items.forEach(it => {
+        idx++;
+        const sub = it.pricing.usd * it.qty;
+        totalQty += it.qty;
+        totalUsd += sub;
+        rows += `<tr>
+          <td><img src="${it.image}" class="qt-img" loading="lazy" onerror="this.style.display='none'"></td>
+          <td><div class="qt-name-ru">${it.nameRu}</div><div class="qt-name-sub">${it.nameEn}</div><div class="qt-name-sub">${it.nameKr}</div></td>
+          <td><span class="qt-vol">${it.volume}</span></td>
+          <td style="text-align:right">$${it.pricing.usd.toFixed(2)}</td>
+          <td>
+            <div class="qt-qty">
+              <button class="qt-qty-btn" data-qpid="${it.id}" data-qact="dec">−</button>
+              <span class="qt-qty-val">${it.qty}</span>
+              <button class="qt-qty-btn" data-qpid="${it.id}" data-qact="inc">+</button>
+            </div>
+          </td>
+          <td class="qt-sub">$${sub.toFixed(2)}</td>
+        </tr>`;
+      });
+    });
+
+    rows += `<tr class="qt-total"><td colspan="4" style="text-align:right">ИТОГО / TOTAL</td><td style="text-align:center">${totalQty}</td><td style="text-align:right;font-size:16px">$${totalUsd.toFixed(2)}</td></tr>`;
+
+    const body = document.getElementById("quoteBody");
+    body.innerHTML = `
+      <table class="qt">
+        <thead><tr>
+          <th style="width:50px"></th>
+          <th>Наименование</th>
+          <th>Объём</th>
+          <th style="text-align:right">Цена</th>
+          <th>Кол-во</th>
+          <th style="text-align:right">Сумма</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="qt-summary">
+        <div class="qt-summary-box"><div class="qt-summary-label">Товаров</div><div class="qt-summary-value">${selected.length}</div></div>
+        <div class="qt-summary-box"><div class="qt-summary-label">Кол-во</div><div class="qt-summary-value">${totalQty}</div></div>
+        <div class="qt-summary-box total"><div class="qt-summary-label">Итого</div><div class="qt-summary-value">$${totalUsd.toFixed(2)}</div></div>
+      </div>`;
+
+    // Qty buttons inside preview
+    body.addEventListener("click", e => {
+      const btn = e.target.closest(".qt-qty-btn");
+      if (!btn) return;
+      const pid = parseInt(btn.dataset.qpid);
+      const act = btn.dataset.qact;
+      setQty(pid, act === "inc" ? getQty(pid) + 1 : getQty(pid) - 1);
+      openQuotePreview(); // re-render
+    });
+
+    document.getElementById("quoteOverlay").classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeQuotePreview() {
+    document.getElementById("quoteOverlay").classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  function getSelected() {
+    const selected = [];
+    Object.entries(cart).forEach(([pid, qty]) => {
+      if (qty > 0) {
+        const p = DATA.products.find(x => x.id === parseInt(pid));
+        if (p) selected.push({ ...p, qty });
+      }
+    });
+    return selected;
   }
 
   // === PDF ===
