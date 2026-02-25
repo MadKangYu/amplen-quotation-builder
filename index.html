@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>AMPLE:N — Dealer Quotation Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#1a237e">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-left">
+        <h1 class="brand-name">AMPLE:N</h1>
+        <p class="brand-sub">Dealer Quotation Builder</p>
+      </div>
+      <div class="header-right">
+        <span class="exchange-badge">$1 = ₩1,450</span>
+        <span class="date-badge" id="dateLabel"></span>
+      </div>
+    </div>
+    <!-- QUICK ACTIONS -->
+    <div class="quick-actions">
+      <button class="btn-quick" id="btnAddAll1">＋ Все по 1 шт.</button>
+      <button class="btn-quick" id="btnAddAll3">＋ Все по 3 шт.</button>
+      <button class="btn-quick btn-quick-danger" id="btnResetTop">↺ Сброс</button>
+    </div>
+  </header>
+
+  <!-- SECTION TABS -->
+  <nav class="section-tabs" id="sectionTabs"></nav>
+
+  <!-- PRODUCT GRID -->
+  <main class="main" id="productGrid"></main>
+
+  <!-- EMPTY STATE -->
+  <div class="empty-state" id="emptyState">
+    <div class="empty-icon">📋</div>
+    <p>Выберите товары и укажите количество</p>
+    <p class="empty-hint">제품을 선택하고 수량을 입력하세요</p>
+  </div>
+
+  <!-- STICKY BOTTOM BAR -->
+  <div class="bottom-bar" id="bottomBar">
+    <div class="bottom-inner">
+      <div class="bottom-stats">
+        <div class="stat">
+          <span class="stat-label">Товары</span>
+          <span class="stat-value" id="totalProducts">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Кол-во</span>
+          <span class="stat-value" id="totalItems">0</span>
+        </div>
+        <div class="stat stat-total">
+          <span class="stat-label">Итого</span>
+          <span class="stat-value" id="totalUsd">$0.00</span>
+        </div>
+      </div>
+      <div class="bottom-actions">
+        <button class="btn-reset" id="btnReset">↺</button>
+        <button class="btn-pdf" id="btnPdf">📄 Скачать PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HIDDEN: PDF TEMPLATE -->
+  <div id="pdfTemplate" style="display:none"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

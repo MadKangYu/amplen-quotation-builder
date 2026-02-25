@@ -1,0 +1,693 @@
+{
+  "meta": {
+    "brand": "AMPLE:N",
+    "market": "Uzbekistan",
+    "year": 2026,
+    "pricing": {
+      "method": "Coupang × 1.1",
+      "exchangeRate": {
+        "usd_to_krw": 1450
+      },
+      "currency": [
+        "KRW",
+        "USD"
+      ]
+    },
+    "totalProducts": 38,
+    "totalSections": 11,
+    "updatedAt": "2026-02-25"
+  },
+  "sections": [
+    {
+      "id": "hyaluron",
+      "num": "01",
+      "title": "Hyaluron Shot",
+      "titleKr": "히알루론샷",
+      "productIds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "titleRu": "Гиалуроновая линия"
+    },
+    {
+      "id": "peptide",
+      "num": "02",
+      "title": "Peptide Shot",
+      "titleKr": "펩타이드샷",
+      "productIds": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "titleRu": "Пептидная линия"
+    },
+    {
+      "id": "bbsun",
+      "num": "03",
+      "title": "Air Fit BB & Solar Shot",
+      "titleKr": "에어핏 비비 & 솔라샷",
+      "productIds": [
+        12,
+        13,
+        33,
+        34,
+        35
+      ],
+      "titleRu": "BB-крем и солнцезащитная линия"
+    },
+    {
+      "id": "acne",
+      "num": "04",
+      "title": "Acne Shot",
+      "titleKr": "아크네샷",
+      "productIds": [
+        14,
+        15
+      ],
+      "titleRu": "Линия против акне"
+    },
+    {
+      "id": "vc",
+      "num": "05",
+      "title": "VC Shot",
+      "titleKr": "브이씨샷",
+      "productIds": [
+        16,
+        17,
+        18,
+        19
+      ],
+      "titleRu": "Линия с витамином C"
+    },
+    {
+      "id": "special",
+      "num": "06",
+      "title": "Purifying & 24K Gold",
+      "titleKr": "퓨리파잉 & 24K 골드",
+      "productIds": [
+        20,
+        21
+      ],
+      "titleRu": "Очищение и 24K золото"
+    },
+    {
+      "id": "ceramide",
+      "num": "07",
+      "title": "Ceramide Shot",
+      "titleKr": "세라마이드샷",
+      "productIds": [
+        22,
+        23,
+        24,
+        25
+      ],
+      "titleRu": "Керамидная линия"
+    },
+    {
+      "id": "centel",
+      "num": "08",
+      "title": "Centel Calming Shot",
+      "titleKr": "센텔카밍샷",
+      "productIds": [
+        26,
+        27,
+        28,
+        29
+      ],
+      "titleRu": "Успокаивающая линия с центеллой"
+    },
+    {
+      "id": "blemy",
+      "num": "09",
+      "title": "Blemy Shot",
+      "titleKr": "블레미샷",
+      "productIds": [
+        30,
+        31
+      ],
+      "titleRu": "Линия от пигментации"
+    },
+    {
+      "id": "entangle",
+      "num": "10",
+      "title": "Entangle Shot",
+      "titleKr": "인탱글샷",
+      "productIds": [
+        32
+      ],
+      "titleRu": "Коллагеновая линия"
+    },
+    {
+      "id": "tint",
+      "num": "11",
+      "title": "Water Glow Tint",
+      "titleKr": "워터글로우 틴트",
+      "productIds": [
+        36,
+        37,
+        38
+      ],
+      "titleRu": "Тинты для губ"
+    }
+  ],
+  "products": [
+    {
+      "id": 1,
+      "sectionId": "hyaluron",
+      "nameEn": "Hyaluron Shot Toner",
+      "nameKr": "앰플엔 히알루론샷 토너",
+      "volume": "220ML",
+      "image": "https://shop-phinf.pstatic.net/20230210_241/1676006532172zBqbO_JPEG/77142427898309069_1684458092.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 12410,
+        "x11": 13651,
+        "usd": 9.41
+      },
+      "nameRu": "Гиалуроновый тонер"
+    },
+    {
+      "id": 2,
+      "sectionId": "hyaluron",
+      "nameEn": "Hyaluron Shot Moisture Ampoule",
+      "nameKr": "앰플엔 히알루론샷 수분 앰플",
+      "volume": "30ML",
+      "image": "https://shop-phinf.pstatic.net/20250801_105/1754035794952w5EfB_JPEG/178167048686108_364818629.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 10900,
+        "x11": 11990,
+        "usd": 8.27
+      },
+      "nameRu": "Гиалуроновая увлажняющая ампула"
+    },
+    {
+      "id": 3,
+      "sectionId": "hyaluron",
+      "nameEn": "Hyaluron Shot Moisture Cream",
+      "nameKr": "앰플엔 히알루론샷 수분 크림",
+      "volume": "60ML",
+      "image": "https://shop-phinf.pstatic.net/20250902_91/1756791650043Xri2U_JPEG/6599896901138265_1917037703.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 14900,
+        "x11": 16390,
+        "usd": 11.3
+      },
+      "nameRu": "Гиалуроновый увлажняющий крем"
+    },
+    {
+      "id": 4,
+      "sectionId": "hyaluron",
+      "nameEn": "Hyaluron Shot Eye Cream 2",
+      "nameKr": "앰플엔 히알루론샷 아이크림2",
+      "volume": "25ML",
+      "image": "https://shop-phinf.pstatic.net/20250113_277/1736768889895vua7Y_JPEG/82200100678429324_353460703.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 4950,
+        "x11": 5445,
+        "usd": 3.76
+      },
+      "nameRu": "Гиалуроновый крем для кожи вокруг глаз 2"
+    },
+    {
+      "id": 5,
+      "sectionId": "hyaluron",
+      "nameEn": "Hyaluron Shot Bubble Cleanser",
+      "nameKr": "앰플엔 히알루론샷 버블클렌저",
+      "volume": "450ML",
+      "image": "https://shop-phinf.pstatic.net/20260108_10/17678584091982N5lw_JPEG/17113602317060648_201675814.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 19900,
+        "x11": 21890,
+        "usd": 15.1
+      },
+      "nameRu": "Гиалуроновая пенка для умывания"
+    },
+    {
+      "id": 6,
+      "sectionId": "hyaluron",
+      "nameEn": "Hyaluron Shot Mask",
+      "nameKr": "앰플엔 히알루론샷 마스크",
+      "volume": "25ML",
+      "image": "https://amplen-uzbekistan-pricing-dealer.vercel.app/images/amplen_06_hyaluron_mask.jpg",
+      "pricing": {
+        "coupang": 1270,
+        "x11": 1397,
+        "usd": 0.96
+      },
+      "nameRu": "Гиалуроновая тканевая маска"
+    },
+    {
+      "id": 7,
+      "sectionId": "hyaluron",
+      "nameEn": "Hyaluron Shot Triple Set",
+      "nameKr": "앰플엔 히알루론샷 3종기획세트",
+      "volume": "SET",
+      "image": "https://shop-phinf.pstatic.net/20240215_180/1707960164471bD26c_JPEG/35262848351402421_1575651498.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 23440,
+        "x11": 25784,
+        "usd": 17.78
+      },
+      "nameRu": "Гиалуроновый набор из 3 средств"
+    },
+    {
+      "id": 8,
+      "sectionId": "peptide",
+      "nameEn": "Peptide Shot Ampoule 2X",
+      "nameKr": "앰플엔 펩타이드샷 앰플 투엑스",
+      "volume": "30ML",
+      "image": "https://shop-phinf.pstatic.net/20250814_229/1755156277024J8g0Q_JPEG/6582245071689097_1202806819.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 15900,
+        "x11": 17490,
+        "usd": 12.06
+      },
+      "nameRu": "Пептидная ампула двойного действия"
+    },
+    {
+      "id": 9,
+      "sectionId": "peptide",
+      "nameEn": "Peptide Shot Ampoule 2X 100ml",
+      "nameKr": "앰플엔 펩타이드샷 앰플 투엑스 대용량",
+      "volume": "100ML",
+      "image": "https://shop-phinf.pstatic.net/20240829_73/1724913445630MqpDJ_JPEG/18739816426188058_1618744049.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 19900,
+        "x11": 21890,
+        "usd": 15.1
+      },
+      "nameRu": "Пептидная ампула двойного действия 100 мл"
+    },
+    {
+      "id": 10,
+      "sectionId": "peptide",
+      "nameEn": "Peptide Shot Mask",
+      "nameKr": "앰플엔 펩타이드샷 마스크",
+      "volume": "25ML",
+      "image": "https://amplen-uzbekistan-pricing-dealer.vercel.app/images/amplen_10_peptide_mask.jpg",
+      "pricing": {
+        "coupang": 1050,
+        "x11": 1155,
+        "usd": 0.8
+      },
+      "nameRu": "Пептидная тканевая маска"
+    },
+    {
+      "id": 11,
+      "sectionId": "peptide",
+      "nameEn": "Peptide Shot Eye Cream",
+      "nameKr": "앰플엔 펩타이드샷 아이크림",
+      "volume": "20ML",
+      "image": "https://shop-phinf.pstatic.net/20251124_289/17639612352547h8OL_JPEG/12666796053535049_1376038763.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 20000,
+        "x11": 22000,
+        "usd": 15.17
+      },
+      "nameRu": "Пептидный крем для кожи вокруг глаз"
+    },
+    {
+      "id": 12,
+      "sectionId": "bbsun",
+      "nameEn": "Air Fit BB Cream 21 Light Beige",
+      "nameKr": "앰플엔 에어핏 비비 21호 라이트베이지",
+      "volume": "—",
+      "image": "https://amplen-uzbekistan-pricing-dealer.vercel.app/images/amplen_12_bbcream_21.jpg",
+      "pricing": {
+        "coupang": 19680,
+        "x11": 21648,
+        "usd": 14.93
+      },
+      "nameRu": "BB-крем Air Fit №21 Светло-бежевый"
+    },
+    {
+      "id": 13,
+      "sectionId": "bbsun",
+      "nameEn": "Air Fit BB Cream 23 Natural Beige",
+      "nameKr": "앰플엔 에어핏 비비 23호 내추럴베이지",
+      "volume": "—",
+      "image": "https://amplen-uzbekistan-pricing-dealer.vercel.app/images/amplen_13_bbcream_23.jpg",
+      "pricing": {
+        "coupang": 19680,
+        "x11": 21648,
+        "usd": 14.93
+      },
+      "nameRu": "BB-крем Air Fit №23 Натуральный бежевый"
+    },
+    {
+      "id": 14,
+      "sectionId": "acne",
+      "nameEn": "Acne Shot Ampoule",
+      "nameKr": "앰플엔 아크네샷 앰플",
+      "volume": "30ML",
+      "image": "https://shop-phinf.pstatic.net/20240626_189/1719390849932dIhQN_JPEG/70239444897542626_2109427507.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 12250,
+        "x11": 13475,
+        "usd": 9.29
+      },
+      "nameRu": "Ампула против акне"
+    },
+    {
+      "id": 15,
+      "sectionId": "acne",
+      "nameEn": "Acneshot Foam Cleanser",
+      "nameKr": "앰플엔 아크네샷 폼 클렌저",
+      "volume": "150ML",
+      "image": "https://shop-phinf.pstatic.net/20260108_189/1767857978944iXHSm_JPEG/48015598041487018_326152167.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 13600,
+        "x11": 14960,
+        "usd": 10.32
+      },
+      "nameRu": "Пенка для умывания против акне"
+    },
+    {
+      "id": 16,
+      "sectionId": "vc",
+      "nameEn": "VC Shot Ampoule",
+      "nameKr": "앰플엔 브이씨샷 앰플",
+      "volume": "30ML",
+      "image": "https://shop-phinf.pstatic.net/20260108_253/1767861807619MWoi0_JPEG/101994656765157836_1330791789.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 12960,
+        "x11": 14256,
+        "usd": 9.83
+      },
+      "nameRu": "Ампула с витамином C"
+    },
+    {
+      "id": 17,
+      "sectionId": "vc",
+      "nameEn": "VC Shot Oxygen Peel 2",
+      "nameKr": "앰플엔 브이씨샷 산소필2",
+      "volume": "7g×2",
+      "image": "https://shop-phinf.pstatic.net/20250214_151/1739512999900qIKlx_JPEG/26329969703973340_200985590.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 1550,
+        "x11": 1705,
+        "usd": 1.18
+      },
+      "nameRu": "Кислородный пилинг с витамином C"
+    },
+    {
+      "id": 18,
+      "sectionId": "vc",
+      "nameEn": "VC Shot Mask",
+      "nameKr": "앰플엔 브이씨샷 마스크",
+      "volume": "25ML",
+      "image": "https://amplen-uzbekistan-pricing-dealer.vercel.app/images/amplen_21_vc_mask.jpg",
+      "pricing": {
+        "coupang": 1000,
+        "x11": 1100,
+        "usd": 0.76
+      },
+      "nameRu": "Тканевая маска с витамином C"
+    },
+    {
+      "id": 19,
+      "sectionId": "vc",
+      "nameEn": "VC Shot Daily Ampoule Mask",
+      "nameKr": "앰플엔 VC샷 데일리 앰플 마스크",
+      "volume": "390G",
+      "image": "https://shop-phinf.pstatic.net/20241105_274/1730785855085cKQPG_JPEG/10867826829796295_909580305.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 17800,
+        "x11": 19580,
+        "usd": 13.5
+      },
+      "nameRu": "Ежедневная ампульная маска с витамином C"
+    },
+    {
+      "id": 20,
+      "sectionId": "special",
+      "nameEn": "Purifying Shot Pumpkin Enzyme Peeling Gel 2",
+      "nameKr": "앰플엔 퓨리파잉샷 호박효소 필링젤2",
+      "volume": "100ML",
+      "image": "https://shop-phinf.pstatic.net/20260108_298/1767858890393dX6JR_JPEG/34044717603525252_1751319493.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 10200,
+        "x11": 11220,
+        "usd": 7.74
+      },
+      "nameRu": "Пилинг-гель с ферментами тыквы"
+    },
+    {
+      "id": 21,
+      "sectionId": "special",
+      "nameEn": "24K Gold Shot Ampoule",
+      "nameKr": "앰플엔 24케이 골드샷 앰플 대용량",
+      "volume": "100ML",
+      "image": "https://shop-phinf.pstatic.net/20240829_111/1724913613428Fd82q_JPEG/11166839266852691_297124680.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 27960,
+        "x11": 30756,
+        "usd": 21.21
+      },
+      "nameRu": "Ампула с 24-каратным золотом"
+    },
+    {
+      "id": 22,
+      "sectionId": "ceramide",
+      "nameEn": "Ceramide Shot Ampoule",
+      "nameKr": "앰플엔 세라마이드샷 앰플",
+      "volume": "30ML",
+      "image": "https://shop-phinf.pstatic.net/20251203_275/1764722176559mwIiu_JPEG/17514193512834570_1331805560.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 11900,
+        "x11": 13090,
+        "usd": 9.03
+      },
+      "nameRu": "Керамидная ампула"
+    },
+    {
+      "id": 23,
+      "sectionId": "ceramide",
+      "nameEn": "Ceramide Shot Ampoule Mist",
+      "nameKr": "앰플엔 세라마이드샷 앰플미스트",
+      "volume": "80ML",
+      "image": "https://shop-phinf.pstatic.net/20251203_233/17647214993823wc2q_JPEG/19165881185545380_401885660.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 14900,
+        "x11": 16390,
+        "usd": 11.3
+      },
+      "nameRu": "Керамидный ампульный мист"
+    },
+    {
+      "id": 24,
+      "sectionId": "ceramide",
+      "nameEn": "Ceramide Shot Cream",
+      "nameKr": "앰플엔 세라마이드샷 크림",
+      "volume": "50ML",
+      "image": "https://shop-phinf.pstatic.net/20251203_130/1764721708215A1KXY_JPEG/98854648359567862_827768979.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 14250,
+        "x11": 15675,
+        "usd": 10.81
+      },
+      "nameRu": "Керамидный крем"
+    },
+    {
+      "id": 25,
+      "sectionId": "ceramide",
+      "nameEn": "Ceramide Shot Mask",
+      "nameKr": "앰플엔 세라마이드샷 마스크",
+      "volume": "25ML",
+      "image": "https://amplen-uzbekistan-pricing-dealer.vercel.app/images/amplen_28_ceramide_mask.jpg",
+      "pricing": {
+        "coupang": 1140,
+        "x11": 1254,
+        "usd": 0.86
+      },
+      "nameRu": "Керамидная тканевая маска"
+    },
+    {
+      "id": 26,
+      "sectionId": "centel",
+      "nameEn": "Centel Calming Shot Cica Toner",
+      "nameKr": "앰플엔 센텔카밍샷 시카토너",
+      "volume": "200ML",
+      "image": "https://shop-phinf.pstatic.net/20260108_35/1767861740387BM9qn_JPEG/101994655521773363_90252316.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 14900,
+        "x11": 16390,
+        "usd": 11.3
+      },
+      "nameRu": "Успокаивающий CICA-тонер с центеллой"
+    },
+    {
+      "id": 27,
+      "sectionId": "centel",
+      "nameEn": "Centel Calming Shot Ampoule",
+      "nameKr": "앰플엔 센텔카밍샷 앰플",
+      "volume": "30ML",
+      "image": "https://shop-phinf.pstatic.net/20240812_18/1723440449984VLoR7_JPEG/50253344721840515_2102886953.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 9500,
+        "x11": 10450,
+        "usd": 7.21
+      },
+      "nameRu": "Успокаивающая ампула с центеллой"
+    },
+    {
+      "id": 28,
+      "sectionId": "centel",
+      "nameEn": "Centel Calming Shot Mask",
+      "nameKr": "앰플엔 센텔카밍샷 마스크",
+      "volume": "25ML",
+      "image": "https://amplen-uzbekistan-pricing-dealer.vercel.app/images/amplen_31_centel_mask.jpg",
+      "pricing": {
+        "coupang": 1224,
+        "x11": 1346,
+        "usd": 0.93
+      },
+      "nameRu": "Успокаивающая тканевая маска с центеллой"
+    },
+    {
+      "id": 29,
+      "sectionId": "centel",
+      "nameEn": "Centel Calming Shot Toner Pad",
+      "nameKr": "앰플엔 센텔카밍샷 토너패드",
+      "volume": "180ML",
+      "image": "https://shop-phinf.pstatic.net/20260108_190/1767857638653edyS6_JPEG/78006088471498194_2146028501.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 15900,
+        "x11": 17490,
+        "usd": 12.06
+      },
+      "nameRu": "Успокаивающие тонер-пэды с центеллой"
+    },
+    {
+      "id": 30,
+      "sectionId": "blemy",
+      "nameEn": "Blemy Shot Ampoule",
+      "nameKr": "앰플엔 블레미샷 앰플",
+      "volume": "50ML",
+      "image": "https://shop-phinf.pstatic.net/20251201_178/1764559606455tRhol_JPEG/98036157474748200_210296063.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 17500,
+        "x11": 19250,
+        "usd": 13.28
+      },
+      "nameRu": "Ампула против пигментации"
+    },
+    {
+      "id": 31,
+      "sectionId": "blemy",
+      "nameEn": "Blemi Shot Cream",
+      "nameKr": "앰플엔 블레미샷 크림",
+      "volume": "50ML",
+      "image": "https://shop-phinf.pstatic.net/20260108_249/1767862321541ihHqY_JPEG/47448238965202592_466492129.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 26590,
+        "x11": 29249,
+        "usd": 20.17
+      },
+      "nameRu": "Крем против пигментации"
+    },
+    {
+      "id": 32,
+      "sectionId": "entangle",
+      "nameEn": "Entangle Shot Collagen Ampoule",
+      "nameKr": "앰플엔 인탱글샷 콜라겐앰플",
+      "volume": "30ML",
+      "image": "https://shop-phinf.pstatic.net/20230201_85/16752340114085LeQC_JPEG/76369839211659871_1962018899.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 14120,
+        "x11": 15532,
+        "usd": 10.71
+      },
+      "nameRu": "Коллагеновая ампула"
+    },
+    {
+      "id": 33,
+      "sectionId": "bbsun",
+      "nameEn": "Solar Shot Zinc Mild Sun Cream",
+      "nameKr": "앰플엔 솔라샷 징크마일드 선크림",
+      "volume": "40ML",
+      "image": "https://shop-phinf.pstatic.net/20250919_3/1758270836443IzAns_PNG/12933219352984497_913447235.png?type=f750_750",
+      "pricing": {
+        "coupang": 16390,
+        "x11": 18029,
+        "usd": 12.43
+      },
+      "nameRu": "Мягкий солнцезащитный крем с цинком"
+    },
+    {
+      "id": 34,
+      "sectionId": "bbsun",
+      "nameEn": "Solar Shot Peach Tone Up Sun Cream",
+      "nameKr": "앰플엔 솔라샷 피치톤업 선크림",
+      "volume": "40ML",
+      "image": "https://shop-phinf.pstatic.net/20250919_257/1758271088203ar6R9_PNG/12944174721912229_39659928.png?type=f750_750",
+      "pricing": {
+        "coupang": 14700,
+        "x11": 16170,
+        "usd": 11.15
+      },
+      "nameRu": "Солнцезащитный тонирующий крем «Персик»"
+    },
+    {
+      "id": 35,
+      "sectionId": "bbsun",
+      "nameEn": "Solar Shot Air Fit Sun Stick",
+      "nameKr": "앰플엔 솔라샷 에어핏 선스틱",
+      "volume": "20ML",
+      "image": "https://shop-phinf.pstatic.net/20231229_85/1703832850445fRQ87_JPEG/104968749131890782_1535783043.jpg?type=f750_750",
+      "pricing": {
+        "coupang": 13140,
+        "x11": 14454,
+        "usd": 9.97
+      },
+      "nameRu": "Солнцезащитный стик Air Fit"
+    },
+    {
+      "id": 36,
+      "sectionId": "tint",
+      "nameEn": "Water Glow Tint 01 Red",
+      "nameKr": "앰플엔 워터글로우 틴트 01 레드",
+      "volume": "4.5G",
+      "image": "https://amplen-uzbekistan-pricing-dealer.vercel.app/images/amplen_36_tint_red.jpg",
+      "pricing": {
+        "coupang": 17000,
+        "x11": 18700,
+        "usd": 12.9
+      },
+      "nameRu": "Тинт для губ Water Glow №01 Красный"
+    },
+    {
+      "id": 37,
+      "sectionId": "tint",
+      "nameEn": "Water Glow Tint 02 Pink",
+      "nameKr": "앰플엔 워터글로우 틴트 02 핑크",
+      "volume": "4.5G",
+      "image": "https://amplen-uzbekistan-pricing-dealer.vercel.app/images/amplen_37_tint_pink.jpg",
+      "pricing": {
+        "coupang": 17000,
+        "x11": 18700,
+        "usd": 12.9
+      },
+      "nameRu": "Тинт для губ Water Glow №02 Розовый"
+    },
+    {
+      "id": 38,
+      "sectionId": "tint",
+      "nameEn": "Water Glow Tint 03 Peach",
+      "nameKr": "앰플엔 워터글로우 틴트 03 피치",
+      "volume": "4.5G",
+      "image": "https://amplen-uzbekistan-pricing-dealer.vercel.app/images/amplen_38_tint_peach.jpg",
+      "pricing": {
+        "coupang": 17000,
+        "x11": 18700,
+        "usd": 12.9
+      },
+      "nameRu": "Тинт для губ Water Glow №03 Персиковый"
+    }
+  ]
+}
