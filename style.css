@@ -645,24 +645,68 @@ body {
   .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .header-inner { flex-direction: column; gap: 6px; text-align: center; }
   .header-right { justify-content: center; }
-  .brand-name { font-size: 26px; letter-spacing: 4px; }
-  .section-header { flex-direction: column; gap: 8px; align-items: flex-start; }
-  .bottom-inner { flex-direction: column; gap: 12px; }
+  .brand-name { font-size: 24px; letter-spacing: 3px; }
+  .brand-sub { font-size: 10px; letter-spacing: 1.5px; }
+  .header { padding: 14px 16px 10px; }
+  .quick-actions { gap: 6px; margin-top: 8px; }
+  .btn-quick { padding: 7px 12px; font-size: 12px; min-height: 40px; }
+  .section-header { flex-direction: column; gap: 8px; align-items: flex-start; padding: 12px 14px; margin-bottom: 12px; }
+  .section-num { font-size: 24px; margin-right: 8px; }
+  .section-title { font-size: 15px; }
+  .section-tabs { top: 120px; padding: 0 12px; }
+  .tab-btn { padding: 10px 12px; font-size: 11px; min-height: 40px; }
+  .main { padding: 16px 12px; }
+  .card-body { padding: 10px 12px 12px; }
+  .card-name-ru { font-size: 13px; -webkit-line-clamp: 2; }
+  .card-name-en { font-size: 10px; }
+  .card-name-kr { display: none; }
+  .card-price { font-size: 18px; margin-bottom: 8px; }
+  .card-vol { font-size: 11px; padding: 5px 0; letter-spacing: 1px; }
+  .card-img { padding: 8px; }
+  .card-quick-add { opacity: 1; transform: scale(1); width: 36px; height: 36px; font-size: 18px; top: 6px; right: 6px; }
+  .qty-btn { width: 40px; height: 40px; font-size: 18px; }
+  .qty-input { height: 40px; font-size: 14px; }
+  .card-subtotal { font-size: 13px; margin-top: 6px; }
+  .bottom-inner { flex-direction: column; gap: 10px; padding: 12px 16px; }
   .bottom-stats { width: 100%; justify-content: space-around; }
-  .bottom-actions { width: 100%; }
-  .btn-pdf { flex: 1; }
-  .section-tabs { top: 140px; }
-  .card-quick-add { opacity: 1; transform: scale(1); }
+  .bottom-stats .stat-value { font-size: 18px; }
+  .stat-total .stat-value { font-size: 22px !important; }
+  .bottom-actions { width: 100%; justify-content: stretch; }
+  .bottom-actions > * { flex: 1; }
+  .btn-pdf { flex: 1; font-size: 13px; padding: 0 16px; }
+  .btn-quote { font-size: 13px; padding: 0 14px; }
+  .btn-cart-filter { font-size: 12px; padding: 0 12px; }
+  .btn-reset { flex: 0 0 40px; width: 40px; height: 40px; font-size: 16px; }
+  body { padding-bottom: 160px; }
+  .section-actions { gap: 6px; }
+  .btn-sec { padding: 7px 12px; font-size: 11px; min-height: 40px; }
+  .empty-state { padding: 60px 16px; }
+  .empty-icon { font-size: 48px; }
+  .empty-state p { font-size: 14px; }
 }
 @media (max-width: 480px) {
-  .product-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .main { padding: 14px 10px; }
-  .tab-btn { padding: 12px 12px; font-size: 11px; }
-  .card-body { padding: 10px; }
-  .card-name-ru { font-size: 13px; }
-  .card-price { font-size: 18px; }
-  .quick-actions { gap: 6px; }
-  .btn-quick { font-size: 12px; padding: 7px 14px; }
+  .product-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .main { padding: 10px 8px; }
+  .tab-btn { padding: 8px 10px; font-size: 10px; }
+  .card-body { padding: 8px 10px 10px; }
+  .card-name-ru { font-size: 12px; }
+  .card-price { font-size: 16px; }
+  .card-vol { font-size: 10px; padding: 4px 0; }
+  .quick-actions { gap: 4px; }
+  .btn-quick { font-size: 11px; padding: 6px 10px; min-height: 36px; }
+  .header { padding: 10px 12px 8px; }
+  .brand-name { font-size: 22px; letter-spacing: 2px; }
+  .section-header { padding: 10px 12px; }
+  .section-num { font-size: 20px; }
+  .section-title { font-size: 14px; }
+  .bottom-inner { padding: 10px 12px; gap: 8px; }
+  .bottom-stats .stat-value { font-size: 16px; }
+  .stat-total .stat-value { font-size: 20px !important; }
+  .stat-label { font-size: 9px; }
+  .btn-pdf { height: 40px; font-size: 12px; }
+  .btn-quote { height: 40px; font-size: 12px; }
+  .btn-cart-filter { height: 40px; font-size: 11px; }
+  body { padding-bottom: 170px; }
 }
 
 /* === PDF STYLES === */
@@ -749,15 +793,15 @@ body {
 .quote-close:hover { color: #fff; background: rgba(255,255,255,0.12); }
 .quote-modal-body {
   padding: 24px 28px;
-  max-height: 60vh;
+  max-height: 72vh;
   overflow-y: auto;
 }
 
 /* Quote table */
-.qt { width: 100%; border-collapse: collapse; font-size: 13px; }
+.qt { width: 100%; border-collapse: collapse; font-size: 12px; }
 .qt th {
   background: var(--bg);
-  padding: 10px 12px;
+  padding: 8px 10px;
   text-align: left;
   font-weight: 600;
   font-size: 11px;
@@ -769,7 +813,7 @@ body {
   top: 0;
 }
 .qt td {
-  padding: 10px 12px;
+  padding: 6px 10px;
   border-bottom: 1px solid var(--border-light);
   vertical-align: middle;
   transition: background var(--transition);
@@ -780,7 +824,7 @@ body {
   font-weight: 700;
   color: var(--navy);
   font-size: 12px;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-bottom: 2px solid #7986cb;
   letter-spacing: 0.3px;
 }
@@ -789,19 +833,19 @@ body {
   color: var(--white);
   font-weight: 700;
   font-size: 15px;
-  padding: 14px 12px;
+  padding: 10px 12px;
   border: none;
 }
 .qt-img {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 44px;
   object-fit: contain;
-  border-radius: 8px;
+  border-radius: 6px;
   background: #f5f6fa;
   border: 1px solid var(--border-light);
 }
 .qt-name-ru { font-weight: 600; color: var(--navy-text); font-size: 13px; }
-.qt-name-sub { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+.qt-name-sub { font-size: 10px; color: var(--text-muted); margin-top: 1px; display: none; }
 .qt-vol { font-weight: 700; color: var(--navy-text); font-size: 12px; letter-spacing: 0.5px; }
 .qt-qty {
   display: inline-flex;
@@ -813,7 +857,8 @@ body {
   background: var(--white);
 }
 .qt-qty-btn {
-  width: 34px;
+  width: 30px;
+  height: 30px;
   height: 34px;
   border: none;
   background: transparent;
@@ -829,20 +874,20 @@ body {
 .qt-qty-btn:hover { background: var(--gold-light); }
 .qt-qty-btn:active { background: var(--gold); color: #fff; }
 .qt-qty-val {
-  width: 38px;
+  width: 34px;
   text-align: center;
   font-weight: 700;
   font-size: 14px;
   color: var(--navy);
   border-left: 1px solid var(--border-light);
   border-right: 1px solid var(--border-light);
-  padding: 5px 0;
+  padding: 3px 0;
   font-feature-settings: 'tnum' 1;
 }
 .qt-sub {
   font-weight: 700;
   color: var(--gold-deep);
-  font-size: 14px;
+  font-size: 13px;
   text-align: right;
   font-feature-settings: 'tnum' 1;
 }
@@ -932,13 +977,30 @@ body {
 .btn-quote:active { transform: scale(0.97); }
 
 @media (max-width: 768px) {
-  .quote-overlay { padding: 10px; }
-  .quote-modal { margin: 10px auto; border-radius: var(--radius-lg); }
-  .quote-modal-body { padding: 14px; }
-  .qt { font-size: 12px; }
-  .qt th, .qt td { padding: 7px 8px; }
-  .qt-img { width: 38px; height: 38px; }
-  .qt-summary { flex-direction: column; gap: 8px; }
+  .quote-overlay { padding: 8px; }
+  .quote-modal { margin: 8px auto; border-radius: var(--radius-lg); }
+  .quote-modal-header { padding: 14px 16px; }
+  .quote-modal-title { font-size: 18px; }
+  .quote-close { width: 36px; height: 36px; font-size: 18px; }
+  .quote-modal-body { padding: 12px; max-height: 65vh; }
+  .qt { font-size: 11px; }
+  .qt th, .qt td { padding: 5px 6px; }
+  .qt-img { width: 44px; height: 34px; border-radius: 4px; }
+  .qt-name-ru { font-size: 11px; }
+  .qt-name-sub { display: none; }
+  .qt-vol { font-size: 10px; }
+  .qt-qty-btn { width: 26px; height: 26px; font-size: 14px; }
+  .qt-qty-val { width: 28px; font-size: 12px; }
+  .qt-sub { font-size: 12px; }
+  .qt-sec td { padding: 5px 6px; font-size: 10px; }
+  .qt-total td { padding: 8px 6px; font-size: 13px; }
+  .qt-summary { gap: 6px; margin-top: 12px; padding-top: 12px; flex-direction: column; }
+  .qt-summary-box { padding: 10px 8px; }
+  .qt-summary-value { font-size: 20px; }
+  .qt-summary-box.total .qt-summary-value { font-size: 24px; }
+  .quote-modal-footer { padding: 12px 16px; gap: 8px; }
+  .quote-modal-footer .btn-reset { padding: 0 16px; font-size: 13px; }
+  .quote-modal-footer .btn-pdf { font-size: 13px; }
 }
 
 /* === LOADING OVERLAY === */
