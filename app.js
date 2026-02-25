@@ -500,29 +500,54 @@
     await generatePdf(true);
   }
 
-  // === PDF GENERATION ===
+  // === PDF GENERATION (jsPDF + autoTable — no html2canvas) ===
   async function generatePdf(isFullQuotation) {
     const products = isFullQuotation
       ? DATA.products.map(p => ({ ...p, qty: getQty(p.id) || 1 }))
       : getSelected();
 
     if (!products.length) {
-      alert('Нет выбранных товаров\n선택된 제품이 없습니다');
+      alert('\u041d\u0435\u0442 \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u044b\u0445 \u0442\u043e\u0432\u0430\u0440\u043e\u0432\n\uc120\ud0dd\ub41c \uc81c\ud488\uc774 \uc5c6\uc2b5\ub2c8\ub2e4');
       return;
     }
 
-    showLoading('Подготовка котировки...');
+    showLoading('\u041f\u043e\u0434\u0433\u043e\u0442\u043e\u0432\u043a\u0430 \u043a\u043e\u0442\u0438\u0440\u043e\u0432\u043a\u0438...');
 
-    // Preload ALL images as base64 (CRITICAL: avoids CORS in html2canvas)
+    // Preload images as base64 for embedding in PDF
     try {
       imageCache = await preloadImages(products);
     } catch {
       imageCache = {};
     }
 
-    updateLoading('Создание PDF...');
+    updateLoading('\u0421\u043e\u0437\u0434\u0430\u043d\u0438\u0435 PDF...');
 
-    // Group by section (preserve section order)
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const today = fmtDate(new Date());
+
+    // --- HEADER ---
+    doc.setFontSize(22);
+    doc.setTextColor(26, 35, 126);
+    doc.text('AMPLE:N', 14, 16);
+    doc.setFontSize(8);
+    doc.setTextColor(102, 102, 102);
+    doc.text('Commercial Quotation', 14, 21);
+
+    doc.setFontSize(8);
+    doc.setTextColor(85, 85, 85);
+    doc.text(`Date: ${today}`, pageW - 14, 12, { align: 'right' });
+    doc.text(`Rate: $1 = KRW ${EXCHANGE_RATE.toLocaleString()}`, pageW - 14, 16, { align: 'right' });
+    doc.text(`Products: ${products.length} items`, pageW - 14, 20, { align: 'right' });
+
+    // Header line
+    doc.setDrawColor(26, 35, 126);
+    doc.setLineWidth(0.8);
+    doc.line(14, 24, pageW - 14, 24);
+
+    // --- TABLE DATA ---
     const grouped = {};
     DATA.sections.forEach(s => { grouped[s.id] = { sec: s, items: [] }; });
     products.forEach(it => {
@@ -530,119 +555,130 @@
     });
 
     let totalQty = 0, totalUsd = 0, idx = 0;
-    let rows = '';
+    const tableBody = [];
 
     Object.values(grouped).forEach(({ sec, items }) => {
       if (!items.length) return;
       const secSum = items.reduce((s, i) => s + i.pricing.usd * i.qty, 0);
-      rows += `<tr><td colspan="7" style="background:#e8eaf6;font-weight:700;color:#1a237e;border-bottom:2px solid #3f51b5;font-size:10px;padding:5px 8px">${sec.num}. ${sec.title} — ${sec.titleRu || ''}<span style="float:right;font-size:9px;color:#555">$${secSum.toFixed(2)}</span></td></tr>`;
+      // Section header row
+      tableBody.push([{
+        content: `${sec.num}. ${sec.title} \u2014 ${sec.titleRu || ''}    $${secSum.toFixed(2)}`,
+        colSpan: 7,
+        styles: { fillColor: [232, 234, 246], textColor: [26, 35, 126], fontStyle: 'bold', fontSize: 7.5, cellPadding: 2 }
+      }]);
 
       items.forEach(it => {
         idx++;
         const sub = it.pricing.usd * it.qty;
         totalQty += it.qty;
         totalUsd += sub;
-        const bg = idx % 2 ? '#fff' : '#f7f8fc';
-        // ALWAYS use base64 from cache, fallback to placeholder
-        const imgSrc = imageCache[it.id] || PLACEHOLDER_IMG;
+        const imgB64 = imageCache[it.id] || '';
 
-        rows += `<tr style="background:${bg}">
-          <td style="text-align:center;font-size:8px;color:#999;padding:3px 4px">${idx}</td>
-          <td style="padding:2px 4px;width:36px"><img src="${imgSrc}" style="width:32px;height:32px;object-fit:contain;border-radius:3px;background:#f3f3f3;display:block"></td>
-          <td style="padding:3px 6px"><strong style="font-size:8.5px;color:#1a237e">${it.nameRu}</strong><br><span style="color:#888;font-size:6.5px">${it.nameEn}</span><br><span style="color:#bbb;font-size:6px">${it.nameKr}</span></td>
-          <td style="text-align:center;font-weight:700;font-size:8px;color:#1a237e">${it.volume}</td>
-          <td style="text-align:right;font-size:8.5px;padding:3px 6px">$${it.pricing.usd.toFixed(2)}</td>
-          <td style="text-align:center;font-size:9px;font-weight:700;color:#1a237e">${it.qty}</td>
-          <td style="text-align:right;font-weight:700;font-size:9px;padding:3px 6px;color:#1a237e">$${sub.toFixed(2)}</td>
-        </tr>`;
+        tableBody.push([
+          { content: String(idx), styles: { halign: 'center', fontSize: 7, textColor: [150, 150, 150] } },
+          imgB64 ? '' : '-',
+          { content: `${it.nameRu}\n${it.nameEn}\n${it.nameKr}`, styles: { fontSize: 6.5, cellPadding: { top: 1.5, bottom: 1.5, left: 2, right: 2 } } },
+          { content: it.volume, styles: { halign: 'center', fontStyle: 'bold', fontSize: 7 } },
+          { content: `$${it.pricing.usd.toFixed(2)}`, styles: { halign: 'right', fontSize: 7 } },
+          { content: String(it.qty), styles: { halign: 'center', fontStyle: 'bold', fontSize: 8, textColor: [26, 35, 126] } },
+          { content: `$${sub.toFixed(2)}`, styles: { halign: 'right', fontStyle: 'bold', fontSize: 7.5, textColor: [26, 35, 126] } },
+        ]);
       });
     });
 
-    const today = fmtDate(new Date());
-    const pdfHTML = `
-      <div style="font-family:Helvetica,Arial,sans-serif;padding:14px 18px;color:#222;width:1100px">
-        <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #1a237e;padding-bottom:8px;margin-bottom:8px">
-          <div>
-            <div style="font-size:28px;font-weight:700;color:#1a237e;letter-spacing:3px">AMPLE:N</div>
-            <div style="font-size:10px;color:#666;margin-top:2px">Коммерческое предложение / Commercial Quotation / 견적서</div>
-          </div>
-          <div style="text-align:right;font-size:9px;color:#555">
-            <div><strong>Дата:</strong> ${today}</div>
-            <div><strong>Курс:</strong> $1 = ₩${EXCHANGE_RATE.toLocaleString()}</div>
-            <div><strong>Товаров:</strong> ${products.length} наименований</div>
-          </div>
-        </div>
-        <table style="width:100%;border-collapse:collapse;font-size:8.5px;table-layout:fixed">
-          <colgroup>
-            <col style="width:4%">
-            <col style="width:5%">
-            <col style="width:38%">
-            <col style="width:10%">
-            <col style="width:12%">
-            <col style="width:8%">
-            <col style="width:13%">
-          </colgroup>
-          <thead>
-            <tr style="background:#1a237e;color:#fff">
-              <th style="padding:5px 4px;text-align:center;font-weight:600;font-size:8px">№</th>
-              <th style="padding:5px 4px;font-weight:600;font-size:8px">Фото</th>
-              <th style="padding:5px 6px;font-weight:600;font-size:8px">Наименование / Product</th>
-              <th style="padding:5px 4px;text-align:center;font-weight:600;font-size:8px">Объём</th>
-              <th style="padding:5px 6px;text-align:right;font-weight:600;font-size:8px">Цена (USD)</th>
-              <th style="padding:5px 4px;text-align:center;font-weight:600;font-size:8px">Кол-во</th>
-              <th style="padding:5px 6px;text-align:right;font-weight:600;font-size:8px">Сумма (USD)</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows}
-            <tr style="background:#1a237e;color:#fff">
-              <td colspan="5" style="text-align:right;font-weight:700;font-size:10px;padding:7px 8px">ИТОГО / TOTAL (${products.length} наименований)</td>
-              <td style="text-align:center;font-weight:700;font-size:10px;padding:7px 4px">${totalQty}</td>
-              <td style="text-align:right;font-weight:700;font-size:13px;padding:7px 8px">$${totalUsd.toFixed(2)}</td>
-            </tr>
-          </tbody>
-        </table>
-        <div style="margin-top:8px;padding-top:6px;border-top:1px solid #ddd;display:flex;justify-content:space-between;font-size:7px;color:#999">
-          <span>AMPLE:N Uzbekistan · Dealer Quotation · Confidential</span>
-          <span>${today} · $1 = ₩${EXCHANGE_RATE.toLocaleString()}</span>
-        </div>
-      </div>`;
+    // Total row
+    tableBody.push([{
+      content: `TOTAL (${products.length} items)`,
+      colSpan: 5,
+      styles: { halign: 'right', fillColor: [26, 35, 126], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 }
+    }, {
+      content: String(totalQty),
+      styles: { halign: 'center', fillColor: [26, 35, 126], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 }
+    }, {
+      content: `$${totalUsd.toFixed(2)}`,
+      styles: { halign: 'right', fillColor: [26, 35, 126], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 10 }
+    }]);
 
-    // Create a temporary visible container for html2canvas
-    // Must be VISIBLE (not opacity:0, not visibility:hidden, not display:none)
-    // Position it off-screen but fully rendered
-    const tpl = document.getElementById('pdfTemplate');
-    tpl.innerHTML = pdfHTML;
-    tpl.style.cssText = 'position:fixed;left:0;top:0;width:1100px;z-index:999999;background:#fff;pointer-events:none;';
+    // --- DRAW TABLE ---
+    doc.autoTable({
+      startY: 27,
+      margin: { left: 14, right: 14 },
+      head: [[
+        { content: '\u2116', styles: { halign: 'center' } },
+        { content: 'Photo' },
+        { content: 'Product' },
+        { content: 'Vol.', styles: { halign: 'center' } },
+        { content: 'Price (USD)', styles: { halign: 'right' } },
+        { content: 'Qty', styles: { halign: 'center' } },
+        { content: 'Total (USD)', styles: { halign: 'right' } },
+      ]],
+      body: tableBody,
+      columnStyles: {
+        0: { cellWidth: 8 },
+        1: { cellWidth: 12 },
+        2: { cellWidth: 'auto' },
+        3: { cellWidth: 20 },
+        4: { cellWidth: 22 },
+        5: { cellWidth: 14 },
+        6: { cellWidth: 24 },
+      },
+      headStyles: {
+        fillColor: [26, 35, 126],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 7,
+        cellPadding: 2,
+      },
+      bodyStyles: {
+        fontSize: 7,
+        cellPadding: 1.5,
+        textColor: [34, 34, 34],
+      },
+      alternateRowStyles: {
+        fillColor: [247, 248, 252],
+      },
+      didDrawCell: function(data) {
+        // Draw images in column 1 (Photo)
+        if (data.section === 'body' && data.column.index === 1) {
+          const rowIdx = data.row.index;
+          // Find the product for this row (skip section header rows)
+          const rowData = data.row.raw;
+          if (Array.isArray(rowData) && rowData.length === 7) {
+            // This is a product row, find its image
+            const flatProducts = [];
+            Object.values(grouped).forEach(({ items }) => items.forEach(it => flatProducts.push(it)));
+            // Count product rows up to this point
+            let prodIdx = 0;
+            for (let r = 0; r < data.row.index; r++) {
+              const rd = tableBody[r];
+              if (Array.isArray(rd) && rd.length === 7) prodIdx++;
+            }
+            const prod = flatProducts[prodIdx];
+            if (prod) {
+              const b64 = imageCache[prod.id];
+              if (b64 && b64.startsWith('data:image')) {
+                try {
+                  const imgFormat = b64.includes('image/png') ? 'PNG' : 'JPEG';
+                  doc.addImage(b64, imgFormat, data.cell.x + 1, data.cell.y + 0.5, 10, 10);
+                } catch {}
+              }
+            }
+          }
+        }
+      },
+      didDrawPage: function(data) {
+        // Footer on each page
+        doc.setFontSize(6);
+        doc.setTextColor(170, 170, 170);
+        doc.text('AMPLE:N Uzbekistan \u00b7 Dealer Quotation \u00b7 Confidential', 14, pageH - 6);
+        doc.text(`${today} \u00b7 $1 = KRW ${EXCHANGE_RATE.toLocaleString()}`, pageW - 14, pageH - 6, { align: 'right' });
+      },
+    });
 
-    // Wait for DOM paint + images in the HTML to settle
-    await new Promise(r => setTimeout(r, 500));
-
-    try {
-      await html2pdf().set({
-        margin: [6, 6, 6, 6],
-        filename: `AMPLEN_Quotation_${products.length}items_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.pdf`,
-        image: { type: 'jpeg', quality: 0.92 },
-        html2canvas: {
-          scale: 2,
-          useCORS: false,
-          allowTaint: true,
-          logging: false,
-          width: 1100,
-          windowWidth: 1100,
-          backgroundColor: '#ffffff',
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-      }).from(tpl).save();
-    } catch (err) {
-      console.error('PDF generation error:', err);
-      alert('PDF \uc0dd\uc131 \uc624\ub958: ' + err.message);
-    } finally {
-      tpl.style.cssText = 'display:none';
-      tpl.innerHTML = '';
-      hideLoading();
-    }
+    // Save
+    const filename = `AMPLEN_Quotation_${products.length}items_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.pdf`;
+    doc.save(filename);
+    hideLoading();
   }
 
   document.addEventListener("DOMContentLoaded", init);
