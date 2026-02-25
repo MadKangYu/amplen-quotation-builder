@@ -608,14 +608,15 @@
         </div>
       </div>`;
 
-    // CRITICAL: Use offscreen rendering instead of display:none
-    // html2canvas cannot capture display:none elements
+    // Create a temporary visible container for html2canvas
+    // Must be VISIBLE (not opacity:0, not visibility:hidden, not display:none)
+    // Position it off-screen but fully rendered
     const tpl = document.getElementById('pdfTemplate');
     tpl.innerHTML = pdfHTML;
-    tpl.style.cssText = 'position:fixed;left:0;top:0;width:1100px;z-index:-9999;opacity:0;pointer-events:none;background:#fff;';
+    tpl.style.cssText = 'position:fixed;left:0;top:0;width:1100px;z-index:999999;background:#fff;pointer-events:none;';
 
-    // Wait for DOM paint
-    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    // Wait for DOM paint + images in the HTML to settle
+    await new Promise(r => setTimeout(r, 500));
 
     try {
       await html2pdf().set({
@@ -625,7 +626,7 @@
         html2canvas: {
           scale: 2,
           useCORS: false,
-          allowTaint: false,
+          allowTaint: true,
           logging: false,
           width: 1100,
           windowWidth: 1100,
@@ -636,7 +637,7 @@
       }).from(tpl).save();
     } catch (err) {
       console.error('PDF generation error:', err);
-      alert('PDF 생성 오류: ' + err.message);
+      alert('PDF \uc0dd\uc131 \uc624\ub958: ' + err.message);
     } finally {
       tpl.style.cssText = 'display:none';
       tpl.innerHTML = '';
