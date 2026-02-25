@@ -35,6 +35,8 @@
     renderGrid();
     updateAll();
     bindEvents();
+    syncTabsTop();
+    setTimeout(syncTabsTop, 100); // ensure after layout paint
   }
 
   function fmtDate(d) {
@@ -54,6 +56,19 @@
     tick();
     setInterval(tick, 1000);
   }
+
+  // Sync sticky tab bar top with actual header height
+  function syncTabsTop() {
+    const header = document.querySelector('.header');
+    if (!header) return;
+    const h = header.offsetHeight;
+    document.documentElement.style.setProperty('--header-h', h + 'px');
+  }
+  window.addEventListener('resize', syncTabsTop);
+  window.addEventListener('scroll', function() {
+    // Re-sync on first scroll in case layout shifted after initial paint
+    syncTabsTop();
+  }, { once: true });
 
   // === CART ===
   function loadCart() {
@@ -98,10 +113,10 @@
   // === TABS ===
   function renderTabs() {
     const nav = document.getElementById("sectionTabs");
-    let html = `<button class="tab-btn active" data-tab="all">Все<span class="tab-count" id="tc-all"></span></button>`;
+    let html = `<button class="tab-btn active" data-tab="all"><span class="tab-icon">☰</span> Все<span class="tab-count" id="tc-all"></span></button>`;
     // 🛒 Выбранные moved to bottom bar — no longer in tabs
     DATA.sections.forEach(s => {
-      html += `<button class="tab-btn" data-tab="${s.id}">${s.num} ${s.title}<span class="tab-count" id="tc-${s.id}"></span></button>`;
+      html += `<button class="tab-btn" data-tab="${s.id}"><span class="tab-num">${s.num}</span>${s.title}<span class="tab-count" id="tc-${s.id}"></span></button>`;
     });
     nav.innerHTML = html;
   }
