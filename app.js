@@ -492,6 +492,50 @@
   }
 
   // === FULL QUOTATION (38 products × 1EA) ===
+  // === FONT LOADING FOR CYRILLIC SUPPORT ===
+  let _fontCache = { regular: null, bold: null };
+
+  async function loadCyrillicFonts() {
+    if (_fontCache.regular) return _fontCache;
+    const loadFont = async (url) => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) return null;
+        const arrayBuffer = await response.arrayBuffer();
+        const uint8 = new Uint8Array(arrayBuffer);
+        let binary = '';
+        const chunk = 8192;
+        for (let i = 0; i < uint8.length; i += chunk) {
+          binary += String.fromCharCode(...uint8.subarray(i, Math.min(i + chunk, uint8.length)));
+        }
+        return btoa(binary);
+      } catch (e) {
+        console.warn('Font load failed:', url, e);
+        return null;
+      }
+    };
+    const [regular, bold] = await Promise.all([
+      loadFont('/fonts/PTSans-Regular.ttf'),
+      loadFont('/fonts/PTSans-Bold.ttf'),
+    ]);
+    _fontCache = { regular, bold };
+    return _fontCache;
+  }
+
+  function embedFonts(doc) {
+    if (_fontCache.regular) {
+      doc.addFileToVFS('PTSans-Regular.ttf', _fontCache.regular);
+      doc.addFont('PTSans-Regular.ttf', 'PTSans', 'normal');
+    }
+    if (_fontCache.bold) {
+      doc.addFileToVFS('PTSans-Bold.ttf', _fontCache.bold);
+      doc.addFont('PTSans-Bold.ttf', 'PTSans', 'bold');
+    }
+    if (_fontCache.regular) {
+      doc.setFont('PTSans');
+    }
+  }
+
   async function generateFullQuotation() {
     // Add all products at qty 1 if not already in cart
     DATA.products.forEach(p => {
@@ -513,6 +557,10 @@
 
     showLoading('\u041f\u043e\u0434\u0433\u043e\u0442\u043e\u0432\u043a\u0430 \u043a\u043e\u0442\u0438\u0440\u043e\u0432\u043a\u0438...');
 
+    // Load Cyrillic fonts (PT Sans) for Russian text support
+    updateLoading('Загрузка шрифтов...');
+    await loadCyrillicFonts();
+
     // Preload images as base64 for embedding in PDF
     try {
       imageCache = await preloadImages(products);
@@ -524,6 +572,8 @@
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    embedFonts(doc);
+    const usePTSans = !!_fontCache.regular;
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
     const today = fmtDate(new Date());
@@ -577,7 +627,7 @@
         tableBody.push([
           { content: String(idx), styles: { halign: 'center', fontSize: 7, textColor: [150, 150, 150] } },
           imgB64 ? '' : '-',
-          { content: `${it.nameRu}\n${it.nameEn}\n${it.nameKr}`, styles: { fontSize: 6.5, cellPadding: { top: 1.5, bottom: 1.5, left: 2, right: 2 } } },
+          { content: `${it.nameRu}\n${it.nameEn}`, styles: { fontSize: 6.5, cellPadding: { top: 1.5, bottom: 1.5, left: 2, right: 2 } } },
           { content: it.volume, styles: { halign: 'center', fontStyle: 'bold', fontSize: 7 } },
           { content: `$${it.pricing.usd.toFixed(2)}`, styles: { halign: 'right', fontSize: 7 } },
           { content: String(it.qty), styles: { halign: 'center', fontStyle: 'bold', fontSize: 8, textColor: [26, 35, 126] } },
@@ -628,11 +678,13 @@
         fontStyle: 'bold',
         fontSize: 7,
         cellPadding: 2,
+        font: usePTSans ? 'PTSans' : 'helvetica',
       },
       bodyStyles: {
         fontSize: 7,
         cellPadding: 1.5,
         textColor: [34, 34, 34],
+        font: usePTSans ? 'PTSans' : 'helvetica',
       },
       alternateRowStyles: {
         fillColor: [247, 248, 252],
