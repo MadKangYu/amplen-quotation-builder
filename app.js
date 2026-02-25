@@ -113,12 +113,23 @@
   // === TABS ===
   function renderTabs() {
     const nav = document.getElementById("sectionTabs");
-    let html = `<button class="tab-btn active" data-tab="all"><span class="tab-icon">☰</span> Все<span class="tab-count" id="tc-all"></span></button>`;
-    // 🛒 Выбранные moved to bottom bar — no longer in tabs
+    // Mobile toggle header
+    let html = `<div class="mobile-menu-toggle" id="mobileMenuToggle">
+      <span class="mmt-icon">☰</span>
+      <span class="mmt-label" id="mmtLabel">Все категории</span>
+      <span class="mmt-arrow">▾</span>
+    </div>`;
+    html += `<div class="tab-list" id="tabList">`;
+    html += `<button class="tab-btn active" data-tab="all"><span class="tab-icon">☰</span> Все<span class="tab-count" id="tc-all"></span></button>`;
     DATA.sections.forEach(s => {
       html += `<button class="tab-btn" data-tab="${s.id}"><span class="tab-num">${s.num}</span>${s.title}<span class="tab-count" id="tc-${s.id}"></span></button>`;
     });
+    html += `</div>`;
     nav.innerHTML = html;
+    // Mobile menu toggle
+    document.getElementById('mobileMenuToggle').addEventListener('click', () => {
+      nav.classList.toggle('open');
+    });
   }
 
   function updateTabCounts() {
@@ -244,6 +255,24 @@
     }
   }
 
+  function scrollToSection(tab) {
+    if (tab === 'selected') return;
+    const headerH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 108;
+    const isMobile = window.innerWidth <= 768;
+    // On mobile: toggle bar is ~48px; on PC: sidebar doesn't add vertical offset
+    const toggle = document.getElementById('mobileMenuToggle');
+    const tabsH = isMobile && toggle ? toggle.offsetHeight : 0;
+    const offset = headerH + tabsH + 12;
+    if (tab === 'all') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    const sec = document.getElementById('sec-' + tab);
+    if (!sec) return;
+    const top = sec.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  }
+
   // === EVENTS ===
   function bindEvents() {
     // Tabs
@@ -254,6 +283,18 @@
       document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       applyFilter();
+      scrollToSection(activeTab);
+      // Mobile: close dropdown + update toggle label
+      const nav = document.getElementById('sectionTabs');
+      nav.classList.remove('open');
+      const label = document.getElementById('mmtLabel');
+      if (label) {
+        if (activeTab === 'all') { label.textContent = '\u0412\u0441\u0435 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438'; }
+        else {
+          const sec = DATA.sections.find(s => s.id === activeTab);
+          label.textContent = sec ? sec.num + ' ' + sec.title : activeTab;
+        }
+      }
     });
 
     // 🛒 Cart filter toggle (bottom bar)
