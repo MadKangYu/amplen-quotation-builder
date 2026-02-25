@@ -42,7 +42,8 @@
 
   // === CART ===
   function loadCart() {
-    try { cart = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { cart = {}; }
+    cart = {};
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
   }
   function saveCart() { localStorage.setItem(STORAGE_KEY, JSON.stringify(cart)); }
   function getQty(pid) { return cart[pid] || 0; }
