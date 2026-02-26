@@ -42,6 +42,12 @@
       qtPriceCol: 'Цена', qtQtyCol: 'Кол-во', qtSumCol: 'Сумма',
       qtTotal: 'ИТОГО / TOTAL',
       qtSumProducts: 'Товаров', qtSumQty: 'Кол-во', qtSumTotal: 'Итого',
+      historyTitle: '📚 История котировок',
+      historyEmpty: 'История пуста. Создайте первую котировку.',
+      histDocNum: '№ Документа', histDate: 'Дата',
+      histProducts: 'Товары', histQty: 'Кол-во', histTotal: 'Сумма',
+      histType: 'Тип', histFull: 'Полная', histPartial: 'Выборочная',
+      histDetail: 'Подробности', histBackToList: '← К списку',
     },
     kr: {
       fullQuote: '📄 전체 견적서 (38개 제품)',
@@ -65,6 +71,12 @@
       qtPriceCol: '가격', qtQtyCol: '수량', qtSumCol: '금액',
       qtTotal: '합계 / TOTAL',
       qtSumProducts: '제품', qtSumQty: '수량', qtSumTotal: '합계',
+      historyTitle: '📚 견적서 히스토리',
+      historyEmpty: '히스토리가 비어있습니다. 첫 견적서를 생성하세요.',
+      histDocNum: '문서번호', histDate: '날짜',
+      histProducts: '제품', histQty: '수량', histTotal: '금액',
+      histType: '유형', histFull: '전체', histPartial: '선택',
+      histDetail: '상세', histBackToList: '← 목록으로',
     }
   };
 
@@ -114,6 +126,9 @@
     if (qtTitle) qtTitle.textContent = L('quoteTitle');
     q('quoteBack', 'back');
     q('quotePdf', 'downloadPdf');
+    // History modal title
+    const htTitle = document.querySelector('.history-modal-title');
+    if (htTitle) htTitle.textContent = L('historyTitle');
 
     // Mobile menu toggle label
     const mmtLabel = document.getElementById('mmtLabel');
@@ -161,6 +176,35 @@
     return sec.title;
   }
 
+  // === QUOTATION STORE (localStorage — Postgres-ready) ===
+  const QS_KEY = 'amplen_quotation_history';
+  const QS_SEQ = 'amplen_quotation_seq';
+
+  const QuotationStore = {
+    _load() { try { return JSON.parse(localStorage.getItem(QS_KEY)) || []; } catch { return []; } },
+    _save(arr) { localStorage.setItem(QS_KEY, JSON.stringify(arr)); },
+
+    nextNumber() {
+      const year = new Date().getFullYear();
+      let seq = parseInt(localStorage.getItem(QS_SEQ)) || 0;
+      seq++;
+      localStorage.setItem(QS_SEQ, String(seq));
+      return '\u041a\u041f-' + year + '-' + String(seq).padStart(4, '0');
+    },
+
+    save(record) {
+      const arr = this._load();
+      arr.unshift(record);
+      if (arr.length > 200) arr.length = 200;
+      this._save(arr);
+      return record;
+    },
+
+    getAll() { return this._load(); },
+    getById(docNumber) { return this._load().find(r => r.docNumber === docNumber) || null; },
+    count() { return this._load().length; },
+  };
+
   // === INIT ===
   async function init() {
     document.getElementById("dateLabel").textContent = fmtDate(new Date());
@@ -180,6 +224,7 @@
     updateAll();
     bindEvents();
     applyLangUI(); // apply language-specific UI text
+    updateHistoryBadge();
     syncTabsTop();
     setTimeout(syncTabsTop, 100); // ensure after layout paint
   }
@@ -523,10 +568,18 @@
     document.getElementById("quoteOverlay").addEventListener("click", e => {
       if (e.target === e.currentTarget) closeQuotePreview();
     });
-  }
 
     // Language toggle
     document.getElementById('btnLang').addEventListener('click', toggleLang);
+
+    // History
+    document.getElementById('btnHistory').addEventListener('click', openHistory);
+    document.getElementById('historyClose').addEventListener('click', closeHistory);
+    document.getElementById('historyBack').addEventListener('click', closeHistory);
+    document.getElementById('historyOverlay').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeHistory();
+    });
+  }
 
   // === QUOTATION PREVIEW ===
   function openQuotePreview() {
@@ -817,6 +870,7 @@
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
     const today = fmtDate(new Date());
+    const docNumber = QuotationStore.nextNumber();
 
     // --- HEADER ---
     doc.setFontSize(22);
@@ -824,13 +878,14 @@
     doc.text('AMPLE:N', 14, 16);
     doc.setFontSize(8);
     doc.setTextColor(102, 102, 102);
-    doc.text('Commercial Quotation', 14, 21);
+    doc.text('Commercial Quotation · ' + docNumber, 14, 21);
 
     doc.setFontSize(8);
     doc.setTextColor(85, 85, 85);
     doc.text(`Date: ${today}`, pageW - 14, 12, { align: 'right' });
     doc.text(`Rate: $1 = KRW ${EXCHANGE_RATE.toLocaleString()}`, pageW - 14, 16, { align: 'right' });
     doc.text(`Products: ${products.length} items`, pageW - 14, 20, { align: 'right' });
+    doc.text(docNumber, pageW - 14, 24, { align: 'right' });
 
     // Header line
     doc.setDrawColor(26, 35, 126);
@@ -962,15 +1017,159 @@
         // Footer on each page
         doc.setFontSize(6);
         doc.setTextColor(170, 170, 170);
-        doc.text('AMPLE:N Uzbekistan \u00b7 Dealer Quotation \u00b7 Confidential', 14, pageH - 6);
-        doc.text(`${today} \u00b7 $1 = KRW ${EXCHANGE_RATE.toLocaleString()}`, pageW - 14, pageH - 6, { align: 'right' });
+        doc.text('AMPLE:N Uzbekistan · ' + docNumber + ' · Confidential', 14, pageH - 6);
+        doc.text(`${today} · $1 = KRW ${EXCHANGE_RATE.toLocaleString()}`, pageW - 14, pageH - 6, { align: 'right' });
       },
     });
 
     // Save
-    const filename = `AMPLEN_Quotation_${products.length}items_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.pdf`;
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const filename = `AMPLEN_${docNumber}_${products.length}items_${dateStr}.pdf`;
     doc.save(filename);
+
+    // Save to history
+    let totalQtyH = 0, totalUsdH = 0;
+    products.forEach(p => { totalQtyH += p.qty; totalUsdH += p.pricing.usd * p.qty; });
+    QuotationStore.save({
+      docNumber,
+      createdAt: new Date().toISOString(),
+      totalProducts: products.length,
+      totalQty: totalQtyH,
+      totalUsd: totalUsdH,
+      isFullQuotation: !!isFullQuotation,
+      items: products.map(p => ({
+        id: p.id, nameRu: p.nameRu, nameEn: p.nameEn, nameKr: p.nameKr,
+        volume: p.volume, unitPrice: p.pricing.usd, qty: p.qty,
+        subtotal: p.pricing.usd * p.qty
+      }))
+    });
+    updateHistoryBadge();
     hideLoading();
+  }
+
+  // === HISTORY UI ===
+  function updateHistoryBadge() {
+    const el = document.getElementById('historyCount');
+    if (el) el.textContent = QuotationStore.count();
+  }
+
+  function openHistory() {
+    renderHistoryList();
+    document.getElementById('historyOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeHistory() {
+    document.getElementById('historyOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function renderHistoryList() {
+    const records = QuotationStore.getAll();
+    const body = document.getElementById('historyBody');
+    const title = document.querySelector('.history-modal-title');
+    if (title) title.textContent = L('historyTitle');
+
+    if (!records.length) {
+      body.innerHTML = `<div class="history-empty"><div class="empty-icon">\ud83d\udcda</div><p>${L('historyEmpty')}</p></div>`;
+      return;
+    }
+
+    let html = `<table class="ht">
+      <thead><tr>
+        <th>${L('histDocNum')}</th>
+        <th>${L('histDate')}</th>
+        <th>${L('histType')}</th>
+        <th style="text-align:center">${L('histProducts')}</th>
+        <th style="text-align:center">${L('histQty')}</th>
+        <th style="text-align:right">${L('histTotal')}</th>
+        <th></th>
+      </tr></thead><tbody>`;
+
+    records.forEach(r => {
+      const d = new Date(r.createdAt);
+      const dateStr = fmtDate(d);
+      const timeStr = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      const typeLabel = r.isFullQuotation ? L('histFull') : L('histPartial');
+      const typeCls = r.isFullQuotation ? 'ht-type-full' : 'ht-type-partial';
+      html += `<tr class="ht-row" data-doc="${r.docNumber}">
+        <td class="ht-doc">${r.docNumber}</td>
+        <td class="ht-date">${dateStr}<br><span class="ht-time">${timeStr}</span></td>
+        <td><span class="${typeCls}">${typeLabel}</span></td>
+        <td style="text-align:center">${r.totalProducts}</td>
+        <td style="text-align:center">${r.totalQty}</td>
+        <td style="text-align:right;font-weight:600">$${r.totalUsd.toFixed(2)}</td>
+        <td><button class="ht-detail-btn" data-doc="${r.docNumber}">${L('histDetail')}</button></td>
+      </tr>`;
+    });
+
+    html += '</tbody></table>';
+    body.innerHTML = html;
+
+    // Detail click
+    body.querySelectorAll('.ht-detail-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        renderHistoryDetail(btn.dataset.doc);
+      });
+    });
+  }
+
+  function renderHistoryDetail(docNumber) {
+    const r = QuotationStore.getById(docNumber);
+    if (!r) return;
+    const body = document.getElementById('historyBody');
+    const title = document.querySelector('.history-modal-title');
+    if (title) title.textContent = docNumber;
+
+    const d = new Date(r.createdAt);
+    const dateStr = fmtDate(d);
+    const timeStr = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+
+    let html = `<div class="hd-header">
+      <div class="hd-meta">
+        <span class="hd-doc">${r.docNumber}</span>
+        <span class="hd-date">${dateStr} ${timeStr}</span>
+        <span class="${r.isFullQuotation ? 'ht-type-full' : 'ht-type-partial'}">${r.isFullQuotation ? L('histFull') : L('histPartial')}</span>
+      </div>
+      <button class="ht-back-btn" id="histBackToList">${L('histBackToList')}</button>
+    </div>`;
+
+    html += `<table class="ht hd-table">
+      <thead><tr>
+        <th style="width:30px">#</th>
+        <th>${L('qtNameCol')}</th>
+        <th>${L('qtVolCol')}</th>
+        <th style="text-align:right">${L('qtPriceCol')}</th>
+        <th style="text-align:center">${L('qtQtyCol')}</th>
+        <th style="text-align:right">${L('qtSumCol')}</th>
+      </tr></thead><tbody>`;
+
+    r.items.forEach((it, i) => {
+      const name = currentLang === 'kr' ? it.nameKr : it.nameRu;
+      html += `<tr>
+        <td style="color:#999">${i + 1}</td>
+        <td><div class="hd-name">${name}</div><div class="hd-name-sub">${it.nameEn}</div></td>
+        <td>${it.volume}</td>
+        <td style="text-align:right">$${it.unitPrice.toFixed(2)}</td>
+        <td style="text-align:center;font-weight:600">${it.qty}</td>
+        <td style="text-align:right;font-weight:600">$${it.subtotal.toFixed(2)}</td>
+      </tr>`;
+    });
+
+    html += `</tbody>
+      <tfoot><tr class="ht-total">
+        <td colspan="4" style="text-align:right">${L('qtTotal')}</td>
+        <td style="text-align:center">${r.totalQty}</td>
+        <td style="text-align:right;font-size:15px">$${r.totalUsd.toFixed(2)}</td>
+      </tr></tfoot>
+    </table>`;
+
+    body.innerHTML = html;
+
+    document.getElementById('histBackToList').addEventListener('click', () => {
+      renderHistoryList();
+    });
   }
 
   document.addEventListener("DOMContentLoaded", init);
