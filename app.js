@@ -591,55 +591,97 @@
     selected.forEach(it => { if (grouped[it.sectionId]) grouped[it.sectionId].items.push(it); });
 
     let totalQty = 0, totalUsd = 0, idx = 0;
-    let rows = "";
-
-    Object.values(grouped).forEach(({ sec, items }) => {
-      if (!items.length) return;
-      const secSum = items.reduce((s, i) => s + i.pricing.usd * i.qty, 0);
-      const secLabel = currentLang === 'kr' ? (sec.titleKr || sec.titleRu || '') : (sec.titleRu || '');
-      rows += `<tr class="qt-sec"><td colspan="5">${sec.num}. ${sec.title} \u2014 ${secLabel}</td><td style="text-align:right">$${secSum.toFixed(2)}</td></tr>`;
-      items.forEach(it => {
-        idx++;
-        const sub = it.pricing.usd * it.qty;
-        totalQty += it.qty;
-        totalUsd += sub;
-        rows += `<tr>
-          <td><img src="${it.image}" class="qt-img" loading="lazy" onerror="this.style.display='none'"></td>
-          <td><div class="qt-name-ru">${currentLang === 'kr' ? it.nameKr : it.nameRu}</div><div class="qt-name-sub">${it.nameEn}</div></td>
-          <td><span class="qt-vol">${it.volume}</span></td>
-          <td style="text-align:right">$${it.pricing.usd.toFixed(2)}</td>
-          <td>
-            <div class="qt-qty">
-              <button class="qt-qty-btn" data-qpid="${it.id}" data-qact="dec">−</button>
-              <span class="qt-qty-val">${it.qty}</span>
-              <button class="qt-qty-btn" data-qpid="${it.id}" data-qact="inc">+</button>
-            </div>
-          </td>
-          <td class="qt-sub">$${sub.toFixed(2)}</td>
-        </tr>`;
-      });
-    });
-
-    rows += `<tr class="qt-total"><td colspan="4" style="text-align:right">${L('qtTotal')}</td><td style="text-align:center">${totalQty}</td><td style="text-align:right;font-size:16px">$${totalUsd.toFixed(2)}</td></tr>`;
-
+    const isMobile = window.innerWidth <= 768;
     const body = document.getElementById("quoteBody");
-    body.innerHTML = `
-      <table class="qt">
-        <thead><tr>
-          <th style="width:50px"></th>
-          <th>${L('qtNameCol')}</th>
-          <th>${L('qtVolCol')}</th>
-          <th style="text-align:right">${L('qtPriceCol')}</th>
-          <th>${L('qtQtyCol')}</th>
-          <th style="text-align:right">${L('qtSumCol')}</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-      <div class="qt-summary">
-        <div class="qt-summary-box"><div class="qt-summary-label">${L('qtSumProducts')}</div><div class="qt-summary-value">${selected.length}</div></div>
-        <div class="qt-summary-box"><div class="qt-summary-label">${L('qtSumQty')}</div><div class="qt-summary-value">${totalQty}</div></div>
-        <div class="qt-summary-box total"><div class="qt-summary-label">${L('qtSumTotal')}</div><div class="qt-summary-value">$${totalUsd.toFixed(2)}</div></div>
-      </div>`;
+
+    if (isMobile) {
+      /* ── MOBILE: Card-based layout ── */
+      let cards = '';
+      Object.values(grouped).forEach(({ sec, items }) => {
+        if (!items.length) return;
+        const secSum = items.reduce((s, i) => s + i.pricing.usd * i.qty, 0);
+        const secLabel = currentLang === 'kr' ? (sec.titleKr || sec.titleRu || '') : (sec.titleRu || '');
+        cards += '<div class="qtm-sec"><span>' + sec.num + '. ' + sec.title + ' \u2014 ' + secLabel + '</span><span class="qtm-sec-sum">$' + secSum.toFixed(2) + '</span></div>';
+        items.forEach(it => {
+          idx++;
+          const sub = it.pricing.usd * it.qty;
+          totalQty += it.qty;
+          totalUsd += sub;
+          const dName = currentLang === 'kr' ? it.nameKr : it.nameRu;
+          cards += '<div class="qtm-card">' +
+            '<div class="qtm-top">' +
+              '<img src="' + it.image + '" class="qtm-img" loading="lazy" onerror="this.style.display=\'none\'">' +
+              '<div class="qtm-info">' +
+                '<div class="qtm-name">' + dName + '</div>' +
+                '<div class="qtm-meta">' + it.volume + ' \u00b7 $' + it.pricing.usd.toFixed(2) + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="qtm-bottom">' +
+              '<div class="qt-qty">' +
+                '<button class="qt-qty-btn" data-qpid="' + it.id + '" data-qact="dec">\u2212</button>' +
+                '<span class="qt-qty-val">' + it.qty + '</span>' +
+                '<button class="qt-qty-btn" data-qpid="' + it.id + '" data-qact="inc">+</button>' +
+              '</div>' +
+              '<div class="qtm-sub">$' + sub.toFixed(2) + '</div>' +
+            '</div>' +
+          '</div>';
+        });
+      });
+      body.innerHTML = '<div class="qtm-list">' + cards + '</div>' +
+        '<div class="qt-summary">' +
+          '<div class="qt-summary-box"><div class="qt-summary-label">' + L('qtSumProducts') + '</div><div class="qt-summary-value">' + selected.length + '</div></div>' +
+          '<div class="qt-summary-box"><div class="qt-summary-label">' + L('qtSumQty') + '</div><div class="qt-summary-value">' + totalQty + '</div></div>' +
+          '<div class="qt-summary-box total"><div class="qt-summary-label">' + L('qtSumTotal') + '</div><div class="qt-summary-value">$' + totalUsd.toFixed(2) + '</div></div>' +
+        '</div>';
+
+    } else {
+      /* ── DESKTOP: Table layout (unchanged) ── */
+      let rows = '';
+      Object.values(grouped).forEach(({ sec, items }) => {
+        if (!items.length) return;
+        const secSum = items.reduce((s, i) => s + i.pricing.usd * i.qty, 0);
+        const secLabel = currentLang === 'kr' ? (sec.titleKr || sec.titleRu || '') : (sec.titleRu || '');
+        rows += `<tr class="qt-sec"><td colspan="5">${sec.num}. ${sec.title} \u2014 ${secLabel}</td><td style="text-align:right">$${secSum.toFixed(2)}</td></tr>`;
+        items.forEach(it => {
+          idx++;
+          const sub = it.pricing.usd * it.qty;
+          totalQty += it.qty;
+          totalUsd += sub;
+          rows += `<tr>
+            <td><img src="${it.image}" class="qt-img" loading="lazy" onerror="this.style.display='none'"></td>
+            <td><div class="qt-name-ru">${currentLang === 'kr' ? it.nameKr : it.nameRu}</div><div class="qt-name-sub">${it.nameEn}</div></td>
+            <td><span class="qt-vol">${it.volume}</span></td>
+            <td style="text-align:right">$${it.pricing.usd.toFixed(2)}</td>
+            <td>
+              <div class="qt-qty">
+                <button class="qt-qty-btn" data-qpid="${it.id}" data-qact="dec">\u2212</button>
+                <span class="qt-qty-val">${it.qty}</span>
+                <button class="qt-qty-btn" data-qpid="${it.id}" data-qact="inc">+</button>
+              </div>
+            </td>
+            <td class="qt-sub">$${sub.toFixed(2)}</td>
+          </tr>`;
+        });
+      });
+      rows += `<tr class="qt-total"><td colspan="4" style="text-align:right">${L('qtTotal')}</td><td style="text-align:center">${totalQty}</td><td style="text-align:right;font-size:16px">$${totalUsd.toFixed(2)}</td></tr>`;
+      body.innerHTML = `
+        <table class="qt">
+          <thead><tr>
+            <th style="width:50px"></th>
+            <th>${L('qtNameCol')}</th>
+            <th>${L('qtVolCol')}</th>
+            <th style="text-align:right">${L('qtPriceCol')}</th>
+            <th>${L('qtQtyCol')}</th>
+            <th style="text-align:right">${L('qtSumCol')}</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="qt-summary">
+          <div class="qt-summary-box"><div class="qt-summary-label">${L('qtSumProducts')}</div><div class="qt-summary-value">${selected.length}</div></div>
+          <div class="qt-summary-box"><div class="qt-summary-label">${L('qtSumQty')}</div><div class="qt-summary-value">${totalQty}</div></div>
+          <div class="qt-summary-box total"><div class="qt-summary-label">${L('qtSumTotal')}</div><div class="qt-summary-value">$${totalUsd.toFixed(2)}</div></div>
+        </div>`;
+    }
 
     // Qty buttons inside preview
     body.addEventListener("click", e => {
