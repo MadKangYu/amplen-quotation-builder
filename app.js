@@ -581,6 +581,32 @@
     });
   }
 
+  // Emoji animation triggers
+  function addEmojiAnim(btnId, selector, animClass) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      const el = btn.querySelector(selector);
+      if (!el) return;
+      el.classList.remove(animClass);
+      void el.offsetWidth;
+      el.classList.add(animClass);
+      setTimeout(() => el.classList.remove(animClass), 600);
+    });
+  }
+
+  // Attach emoji animations
+  addEmojiAnim('btnLang', '.emo-globe', 'clicked');
+  addEmojiAnim('btnAddAll1', '.emo-cart', 'jiggle');
+  addEmojiAnim('btnAddAll3', '.emo-cart', 'jiggle');
+  addEmojiAnim('btnResetTop', '.emo-reset', 'clicked');
+  addEmojiAnim('btnReset', '.emo-reset', 'clicked');
+  addEmojiAnim('btnQuote', '.emo-clipboard', 'clicked');
+  addEmojiAnim('btnPdf', '.emo-pdf', 'clicked');
+  addEmojiAnim('quotePdf', '.emo-pdf', 'clicked');
+  addEmojiAnim('btnFullQuote', '.emo-doc-gold', 'clicked');
+  addEmojiAnim('btnHistory', '.emo-book', 'clicked');
+
   // === QUOTATION PREVIEW ===
   function openQuotePreview() {
     const selected = getSelected();
