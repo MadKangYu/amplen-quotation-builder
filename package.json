@@ -1,0 +1,11 @@
+{
+  "name": "amplen-quotation-builder",
+  "version": "1.0.0",
+  "description": "AMPLE:N Uzbekistan Dealer Quotation Builder",
+  "dependencies": {
+    "@vercel/postgres": "^0.5.1"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}

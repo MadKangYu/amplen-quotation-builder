@@ -189,10 +189,33 @@
       let seq = parseInt(localStorage.getItem(QS_SEQ)) || 0;
       seq++;
       localStorage.setItem(QS_SEQ, String(seq));
-      return '\u041a\u041f-' + year + '-' + String(seq).padStart(4, '0');
+      return 'КП-' + year + '-' + String(seq).padStart(4, '0');
     },
 
-    save(record) {
+    async save(record) {
+      // Try to save to API first
+      try {
+        const response = await fetch('/api/quotations/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            doc_number: record.docNumber,
+            customer_company: record.customerCompany,
+            customer_name: record.customerName,
+            customer_contact: record.customerContact,
+            customer_notes: record.customerNotes,
+            products: record.products,
+            total_qty: record.totalQty,
+            total_usd: record.totalUsd
+          })
+        });
+        if (response.ok) {
+          console.log('Saved to database');
+        }
+      } catch (e) {
+        console.warn('API save failed, using localStorage only:', e);
+      }
+      // Always save to localStorage as cache
       const arr = this._load();
       arr.unshift(record);
       if (arr.length > 200) arr.length = 200;
@@ -200,9 +223,73 @@
       return record;
     },
 
-    getAll() { return this._load(); },
-    getById(docNumber) { return this._load().find(r => r.docNumber === docNumber) || null; },
-    count() { return this._load().length; },
+    async getAll() {
+      // Try to fetch from API first
+      try {
+        const response = await fetch('/api/quotations/list');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            // Convert API format to local format
+            return data.data.map(r => ({
+              docNumber: r.doc_number,
+              customerCompany: r.customer_company,
+              customerName: r.customer_name,
+              customerContact: r.customer_contact,
+              customerNotes: r.customer_notes,
+              totalQty: r.total_qty,
+              totalUsd: r.total_usd,
+              createdAt: r.created_at
+            }));
+          }
+        }
+      } catch (e) {
+        console.warn('API fetch failed, using localStorage:', e);
+      }
+      return this._load();
+    },
+
+    async getById(docNumber) {
+      // Try API first
+      try {
+        const response = await fetch(`/api/quotations/get?docNumber=${encodeURIComponent(docNumber)}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            const r = data.data;
+            return {
+              docNumber: r.doc_number,
+              customerCompany: r.customer_company,
+              customerName: r.customer_name,
+              customerContact: r.customer_contact,
+              customerNotes: r.customer_notes,
+              products: r.products,
+              totalQty: r.total_qty,
+              totalUsd: r.total_usd,
+              createdAt: r.created_at
+            };
+          }
+        }
+      } catch (e) {
+        console.warn('API fetch failed, using localStorage:', e);
+      }
+      return this._load().find(r => r.docNumber === docNumber) || null;
+    },
+
+    async count() {
+      try {
+        const response = await fetch('/api/quotations/list?limit=1');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.pagination) {
+            return data.pagination.total;
+          }
+        }
+      } catch (e) {
+        // fallback to localStorage
+      }
+      return this._load().length;
+    },
   };
 
   // === INIT ===
@@ -1098,14 +1185,18 @@
     // Save to history
     let totalQtyH = 0, totalUsdH = 0;
     products.forEach(p => { totalQtyH += p.qty; totalUsdH += p.pricing.usd * p.qty; });
-    QuotationStore.save({
+    await QuotationStore.save({
       docNumber,
+      customerCompany: document.getElementById('qtCompany')?.value || '',
+      customerName: document.getElementById('qtCustomer')?.value || '',
+      customerContact: document.getElementById('qtContact')?.value || '',
+      customerNotes: document.getElementById('qtNotes')?.value || '',
       createdAt: new Date().toISOString(),
       totalProducts: products.length,
       totalQty: totalQtyH,
       totalUsd: totalUsdH,
       isFullQuotation: !!isFullQuotation,
-      items: products.map(p => ({
+      products: products.map(p => ({
         id: p.id, nameRu: p.nameRu, nameEn: p.nameEn, nameKr: p.nameKr,
         volume: p.volume, unitPrice: p.pricing.usd, qty: p.qty,
         subtotal: p.pricing.usd * p.qty
@@ -1116,13 +1207,13 @@
   }
 
   // === HISTORY UI ===
-  function updateHistoryBadge() {
+  async function updateHistoryBadge() {
     const el = document.getElementById('historyCount');
-    if (el) el.textContent = QuotationStore.count();
+    if (el) el.textContent = await QuotationStore.count();
   }
 
-  function openHistory() {
-    renderHistoryList();
+  async function openHistory() {
+    await renderHistoryList();
     document.getElementById('historyOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
@@ -1132,8 +1223,8 @@
     document.body.style.overflow = '';
   }
 
-  function renderHistoryList() {
-    const records = QuotationStore.getAll();
+  async function renderHistoryList() {
+    const records = await QuotationStore.getAll();
     const body = document.getElementById('historyBody');
     const title = document.querySelector('.history-modal-title');
     if (title) title.textContent = L('historyTitle');
